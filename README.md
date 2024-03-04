@@ -49,7 +49,7 @@ import { $, match } from 'jsr:@core/match';
 
   ```ts
   type Result = {
-    [1]: unknown,.
+    [1]: unknown,
     [Symbol.other]: unknown
     name: unknown,
     country: unknown,
