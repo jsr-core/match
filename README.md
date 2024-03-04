@@ -32,7 +32,7 @@ import { $, match } from 'jsr:@core/match';.
         address: {
             country: $('country'), // you can write the placeholder anywhere,.
             state: 'NY', // without place holder, matcher will compares the values using ===
-        }, }
+        },
         age: $('age', isNumber), // you can specify the type of placeholder with the type guard,
         favorites: ['baseball', $('favorite')], // you can put the placeholder in an array
         others: [$(1), $(Symbol.other)], // you can declare the placeholder with number or symbol
