@@ -431,3 +431,12 @@ Deno.test('28 match object with primitive string value (not equal)', () => {
     assertEquals(result, undefined);
 });
 ```
+
+```ts
+Deno.test('29 match object with primitive value (not equal)', () => {
+    const pattern = { a: 1 };
+    const value = 123;
+    const result = match(pattern, value);
+    assertEquals(result, undefined);
+});
+```
