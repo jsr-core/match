@@ -7,11 +7,11 @@
         "test": "deno test"
     },
     "publish": {
-        "include": [
-            "mod.ts",
-            "README.md",
-            "deno.json"
-        ],
-        "exclude": ["**"]
-    } 
+        "exclude": [
+            ".vscode/**",
+            ".git",
+            ".gitignore",
+            "README.test.ts"
+        ]
+    }
 }
