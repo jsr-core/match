@@ -9,7 +9,8 @@
     "publish": {
         "include": [
             "mod.ts",
-            "README.md"
+            "README.md",
+            "deno.json"
         ],
         "exclude": ["**"]
     } 
