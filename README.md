@@ -49,12 +49,12 @@ import { $, match } from 'jsr:@core/match';.
   type Result = {
     [1]: unknown,.
     [Symbol.other]: unknown
-    name: unknown, country: unknown, ``s
-    Country: unknown, [Symbol.other]: unknown, [1]: unknown, [Symbol.other]: unknown
-    age: number, unknown, [Symbol.other]: unknown, country: unknown, favorite: unknown
+    name: unknown,
+    country: unknown,
+    age: number,
     favorite: unknown
   } | undefined;.
-  const result = match(pattern, value);.
+  const result: Result = match(pattern, value);.
   ```
 
 ## How to create type guards.
