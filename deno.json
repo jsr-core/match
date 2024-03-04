@@ -1,4 +1,7 @@
 {
+    "name": "@core/match",
+    "version": "0.1.0",
+    "exports": "./mod.ts",
     "tasks": {
         "generateTest": "deno run --allow-write --allow-read generateTest.ts",
         "test": "deno test"
