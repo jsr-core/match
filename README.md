@@ -54,7 +54,7 @@ import { $, match } from 'jsr:@core/match';.
     age: number,
     favorite: unknown
   } | undefined;.
-  const result: Result = match(pattern, value);.
+  const result: Result = match(pattern, value);
   ```
 
 ## How to create type guards.
