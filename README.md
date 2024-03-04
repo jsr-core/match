@@ -8,8 +8,8 @@ To do a structured binding, the pre-assigned value must match the pattern,
 If it does not match the pattern, an exception is thrown.
 
 Therefore, to do structured binding, TypeScript either guarantees that the structure matches at compile time, or it does not,
-Validation libraries such as zod or unknownutils to check at runtime that the structure matches.
-The former is impotent for data whose structure is not determined at compile time, such as JSON data,
+validation libraries such as zod or unknownutils checks at runtime that the structure matches.
+The former is impotent for data whose structure is not determined at compile time, such as JSON data.
 The latter required writing two structured binding patterns and two validation patterns.
 
 This library can perform structured binding and validation simultaneously, while preserving compile-time type information,
