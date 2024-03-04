@@ -1,4 +1,4 @@
-# Core/Match
+# TS Match
 
 A pattern matching library for JavaScript/ TypeScript
 
