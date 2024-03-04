@@ -85,7 +85,7 @@ First, load the library.
 
 ```ts
 import { placeholder as $, match } from './mod.ts';
-import { assertEquals } from 'https://deno.land/std@0.98.0/testing/asserts.ts';
+import { assertEquals } from 'jsr:@std/assert';
 ```
 
 This library can be used to check if an object matches a specific pattern.
