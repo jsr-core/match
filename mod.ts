@@ -1,4 +1,4 @@
-import { B, S, U } from "npm:ts-toolbelt";
+import { U } from "https://esm.sh/ts-toolbelt";
 
 type Key = string | number | symbol
 type Pred = (v: unknown) => boolean;

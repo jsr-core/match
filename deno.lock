@@ -21,10 +21,15 @@
       }
     }
   },
+  "redirects": {
+    "https://esm.sh/ts-toolbelt": "https://esm.sh/ts-toolbelt@9.6.0"
+  },
   "remote": {
     "https://deno.land/std@0.98.0/fmt/colors.ts": "db22b314a2ae9430ae7460ce005e0a7130e23ae1c999157e3bb77cf55800f7e4",
     "https://deno.land/std@0.98.0/testing/_diff.ts": "961eaf6d9f5b0a8556c9d835bbc6fa74f5addd7d3b02728ba7936ff93364f7a3",
     "https://deno.land/std@0.98.0/testing/asserts.ts": "289b6ccf3b422ffb311cbf56996960d6530f8d8c0a7281803764c5ec672f9f9c",
+    "https://esm.sh/ts-toolbelt@9.6.0": "ac89beb860fcc5991c126eb3248330c23b9ca9a4ffc1ba2546c247f0637b36bf",
+    "https://esm.sh/v135/ts-toolbelt@9.6.0/denonext/ts-toolbelt.mjs": "c7e7e86cc2fc7eef15854d44f4c647637d35ccb553718863d6c8678c87e8e48f",
     "https://jsr.io/@std/assert/0.218.2/_constants.ts": "a271e8ef5a573f1df8e822a6eb9d09df064ad66a4390f21b3e31f820a38e0975",
     "https://jsr.io/@std/assert/0.218.2/_diff.ts": "79d3b61c11fccddbf5a01df7d57ec496813bdad3a66ab7c275ae67f5409dcdf6",
     "https://jsr.io/@std/assert/0.218.2/_format.ts": "0ba808961bf678437fb486b56405b6fefad2cf87b5809667c781ddee8c32aff4",
