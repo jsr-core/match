@@ -21,7 +21,7 @@ This library is published in JSR and can be used in Deno with `jsr:@core/match`.
 There are only two functions that users need to remember: `$` and `match`.
 
 ```ts
-import { $, match } from 'jsr:@core/match';.
+import { $, match } from 'jsr:@core/match';
 ```
 
 - `$` is a function for creating structured bound patterns.
@@ -64,7 +64,7 @@ It can be declared as follows. There is also a collection of generic type guards
 
 ```ts
 function isNumber(v: unknown): v is number {
-    return typeof v === "number"; }
+    return typeof v === "number";
 }
 ```
 
