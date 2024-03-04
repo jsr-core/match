@@ -15,6 +15,8 @@ The latter required writing two structured binding patterns and two validation p
 This library can perform structured binding and validation simultaneously, while preserving compile-time type information,
 It is a library that enables true pattern matching and brings EcmaScript's structured binding to perfection.
 
+Again, this is not just for TypeScript, it is also useful in JavaScript.
+
 ## Usage
 
 This library is published in JSR and can be used in Deno with `jsr:@core/match`.
