@@ -8,7 +8,7 @@ structured binding, the pre-assigned value must match the pattern, If it does no
 thrown.
 
 Therefore, to do structured binding, TypeScript either guarantees that the structure matches at compile time, or it
-does not, validation libraries such as zod or unknownutils checks at runtime that the structure matches. The former is
+does not, validation libraries such as zod or unknownutil checks at runtime that the structure matches. The former is
 impotent for data whose structure is not determined at compile time, such as JSON data. The latter required writing
 two structured binding patterns and two validation patterns.
 
@@ -64,7 +64,7 @@ import { placeholder as $, match } from 'jsr:@core/match';
 ## How to declare type guards.
 
 In TypeScript, a type guard is a function with type `(v: unknown) => v is T`,
-It can be declared as follows. There is also a collection of generic type guards, such as unknownutils.
+It can be declared as follows. There is also a collection of generic type guards, such as unknownutil.
 
 ```ts
 function isNumber(v: unknown): v is number {
