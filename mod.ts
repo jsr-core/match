@@ -33,19 +33,14 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     if (key in target) {
       const value = pattern[key];
       if (value instanceof Placeholder) {
-        if (value.test) {
-          if (value.test(target[key])) {
-            result[value.name] = target[key];
-            continue;
-          } else {
-            return undefined;
-          }
-        } else {
+        if (!value.test || value.test(target[key])) {
           result[value.name] = target[key];
           continue;
+        } else if (value.test) {
+          return undefined;
         }
       }
-      const subResult = match(pattern[key], target[key]);
+      const subResult = match(value, target[key]);
       if (subResult) {
         Object.assign(result, subResult);
       } else {
