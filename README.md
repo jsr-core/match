@@ -57,7 +57,7 @@ import { $, match } from 'jsr:@core/match';
   const result: Result = match(pattern, value);
   ```
 
-## How to create type guards.
+## How to declare type guards.
 
 In TypeScript, a type guard is a function with type `(v: unknown) => v is T`,
 It can be declared as follows. There is also a collection of generic type guards, such as unknownutils.
