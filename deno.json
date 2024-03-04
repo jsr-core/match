@@ -1,9 +1,16 @@
 {
     "name": "@core/match",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "exports": "./mod.ts",
     "tasks": {
         "generateTest": "deno run --allow-write --allow-read generateTest.ts",
         "test": "deno test"
-    }
+    },
+    "publish": {
+        "include": [
+            "mod.ts",
+            "README.md"
+        ],
+        "exclude": ["**"]
+    } 
 }
