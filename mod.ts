@@ -94,7 +94,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     }
     return result;
   }
-  if (Object.getPrototypeOf(pattern) === Object.getPrototypeOf({})) {
+  if (Object.getPrototypeOf(pattern) === Object.getPrototypeOf({}) && target instanceof Object) {
     for (const key in pattern) {
       if (key in target) {
         const value = pattern[key];
