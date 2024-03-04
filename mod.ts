@@ -4,7 +4,7 @@ type Key = string | number | symbol
 type Pred = (v: unknown) => boolean;
 type Is<T> = (v: unknown) => v is T;
 
-class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
+export class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
   name: T;
   test?: V;
   constructor(name: T, test?: V) {
@@ -13,11 +13,11 @@ class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
   }
 }
 
-export function $<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): Placeholder<T, V> {
+export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): Placeholder<T, V> {
     return new Placeholder(name, test); 
 }
 
-type Result<P> = 
+export type Result<P> = 
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
   P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
