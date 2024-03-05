@@ -71,9 +71,13 @@ function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArr
 }
 _placeholder.greedy = greedy;
 
+/**
+ * Represents a placeholder that can be used in pattern matching.
+ */
 export interface Placeholder {
   /**
    * Creates a regular placeholder with an optional name and test function.
+   * 
    * @param name - The name of the placeholder.
    * @param test - The test function to validate the placeholder value.
    * @returns A regular placeholder with the specified name and test function.
@@ -82,6 +86,7 @@ export interface Placeholder {
 
   /**
    * Creates a template string placeholder with multiple regular placeholders.
+   * 
    * @param strings - The template strings array.
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
@@ -90,6 +95,7 @@ export interface Placeholder {
 
   /**
    * Creates a template string placeholder with greedy matching.
+   * 
    * @param strings - The template strings array.
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
@@ -97,6 +103,10 @@ export interface Placeholder {
   greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 }
 
+
+/**
+ * A placeholder constant.
+ */
 export const placeholder: Placeholder = _placeholder;
 
 /** 
