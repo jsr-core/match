@@ -56,55 +56,48 @@ export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
   }
 }
 
-/**
- * Creates a placeholder with the specified name and test function.
- * @template T - The type of the placeholder name.
- * @template V - The type of the test function.
- * @param name - The name of the placeholder.
- * @param test - The test function to be used for matching.
- * @returns {RegularPlaceholder<T, V>} - The created placeholder.
- */
-export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 
-/**
- * Creates a placeholder template string with non-greedy matching.
- *
- * @template T - The type of the placeholders.
- * @param strings - The template strings array.
- * @param placeholders - The placeholders.
- * @returns The template string placeholder.
- */
-export function placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-
-/**
- * The implementation of the placeholder function.
- * @param nameOrStrings - The name of the placeholder or the template strings array.
- * @param testOrPlaceholders - The test function or the placeholders.
- * @returns The created placeholder.
- * @template T - The type of the placeholder name.
- * @template U - The type of the placeholders.
- * @template V - The type of the test function.
- */
-export function placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStrings: T, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
+function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+function _placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStrings: T, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
   if (nameOrStrings instanceof Array) {
     return new TemplateStringPlaceholder(false, nameOrStrings as any, ...testOrPlaceholders as any);
   }
   return new RegularPlaceholder(nameOrStrings, ...testOrPlaceholders as any);
 }
 
-/**
- * Creates a placeholder template string with greedy matching.
- * This function could be used as `placeholder.greedy`.
- * 
- * @template T - The type of the placeholders.
- * @param strings - The template strings array.
- * @param placeholders - The placeholders.
- * @returns A new TemplateStringPlaceholder instance.
- */
-export function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
+function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
   return new TemplateStringPlaceholder(true, strings, ...placeholders);
 }
-placeholder.greedy = greedy;
+_placeholder.greedy = greedy;
+
+export interface Placeholder {
+  /**
+   * Creates a regular placeholder with an optional name and test function.
+   * @param name - The name of the placeholder.
+   * @param test - The test function to validate the placeholder value.
+   * @returns A regular placeholder with the specified name and test function.
+   */
+  <T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+
+  /**
+   * Creates a template string placeholder with multiple regular placeholders.
+   * @param strings - The template strings array.
+   * @param placeholders - The regular placeholders to be used in the template string.
+   * @returns A template string placeholder with the specified regular placeholders.
+   */
+  <T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+
+  /**
+   * Creates a template string placeholder with greedy matching.
+   * @param strings - The template strings array.
+   * @param placeholders - The regular placeholders to be used in the template string.
+   * @returns A template string placeholder with the specified regular placeholders.
+   */
+  greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+}
+
+export const placeholder: Placeholder = _placeholder;
 
 /** 
  * Result type is a recursive type that represents the result of `match` function.
