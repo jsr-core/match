@@ -115,5 +115,3 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   }
   return undefined;
 }
-
-match([placeholder('x')], 1)
