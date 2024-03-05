@@ -45,6 +45,15 @@ export function templateStringPlaceholder<T extends RegularPlaceholder<Key>[]>(s
   return new TemplateStringPlaceholder(strings, ...placeholders);
 }
 
+export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+export function placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+export function placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(name: T, ...test: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
+  if (name instanceof Array) {
+    return templateStringPlaceholder(name as any, ...test as any);
+  }
+  return regularPlaceholder(name, ...test as any);
+}
+
 /** 
  * Result type is a recursive type that represents the result of `match` function.
  * This type is a record of keys and values that are matched.

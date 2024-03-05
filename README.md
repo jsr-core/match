@@ -21,13 +21,14 @@ Again, this is not just for TypeScript, it is also useful in JavaScript.
 ## Usage
 
 This library is published in JSR and can be used in Deno with `jsr:@core/match`.
-There are only two functions that users need to remember: `$` and `match`.
+There are only two functions that users need to remember: `_` and `match`.
 
 ```ts
-import { regularPlaceholder as $, match } from 'jsr:@core/match';
+import { placeholder as _, match } from 'jsr:@core/match';
 ```
 
-- `$` is a function for creating structured bound patterns.
+- `_` is a function for creating structured bound patterns.
+  If you already use `_` for other library, you can use other name like `__`.
 
     ```ts
     const pattern = {
@@ -84,7 +85,7 @@ Please feel free to use it as long as you comply with the licence.
 First, load the library.
 
 ```ts
-import { regularPlaceholder as _, templateStringPlaceholder as $, match } from './mod.ts';
+import { placeholder as _, match } from './mod.ts';
 import { assertEquals } from 'jsr:@std/assert';
 ```
 
@@ -182,7 +183,7 @@ Deno.test('08 match object with array value', () => {
 });
 ```
 
-Now, let's use a placeholder. The first step is to declare a single placeholder. The placeholder is declared using the `$` function, and the name of the placeholder is passed as an argument. The placeholder holds the name's string value and the type guard function `test`. The following placeholder does not have a type guard, making it the simplest form of a placeholder.
+Now, let's use a placeholder. The first step is to declare a single placeholder. The placeholder is declared using the `_` function, and the name of the placeholder is passed as an argument. The placeholder holds the name's string value and the type guard function `test`. The following placeholder does not have a type guard, making it the simplest form of a placeholder.
 
 ```ts
 Deno.test('09 declare single placeholder', () => {
@@ -203,7 +204,7 @@ Deno.test('10 match object with single placeholder', () => {
 });
 ```
 
-To provide a type guard for the placeholder, declare the type guard function as the second argument of the `$` function.
+To provide a type guard for the placeholder, declare the type guard function as the second argument of the `_` function.
 
 ```ts
 Deno.test('11 match object with single placeholder and type guard', () => {
@@ -443,7 +444,7 @@ Deno.test('29 match object with primitive value (not equal)', () => {
 
 ```ts
 Deno.test('30 match object with template string placeholder', () => {
-    const pattern = $`hello ${_('name')}`;
+    const pattern = _`hello ${_('name')}`;
     const value = 'hello world';
     const result = match(pattern, value);
     assertEquals(result, { name: 'world' });
@@ -452,7 +453,7 @@ Deno.test('30 match object with template string placeholder', () => {
 
 ```ts
 Deno.test('31 match object with template string placeholder (type guard)', () => {
-    const pattern = $`hello ${_('name', (v: unknown): v is string => typeof v === 'string')}`;
+    const pattern = _`hello ${_('name', (v: unknown): v is string => typeof v === 'string')}`;
     const value = 'hello world';
     const result = match(pattern, value);
     assertEquals(result, { name: 'world' });
@@ -461,7 +462,7 @@ Deno.test('31 match object with template string placeholder (type guard)', () =>
 
 ```ts
 Deno.test('32 match object with template string placeholder (length not match)', () => {
-    const pattern = $`hello ${_('name')}`;
+    const pattern = _`hello ${_('name')}`;
     const value = 'hello';
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -470,7 +471,7 @@ Deno.test('32 match object with template string placeholder (length not match)',
 
 ```ts
 Deno.test('33 match object with template string placeholder (not string)', () => {
-    const pattern = $`hello ${_('name')}`;
+    const pattern = _`hello ${_('name')}`;
     const value = 123;
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -479,7 +480,7 @@ Deno.test('33 match object with template string placeholder (not string)', () =>
 
 ```ts
 Deno.test('34 match object with template string placeholder (not equal)', () => {
-    const pattern = $`hello ${_('name')}`;
+    const pattern = _`hello ${_('name')}`;
     const value = 'world';
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -488,7 +489,7 @@ Deno.test('34 match object with template string placeholder (not equal)', () => 
 
 ```ts
 Deno.test('35 match object with template string placeholder with multiple placeholders', () => {
-    const pattern = $`${_('name')} is ${_('age')} years old`;
+    const pattern = _`${_('name')} is ${_('age')} years old`;
     const value = 'world is 123 years old';
     const result = match(pattern, value);
     assertEquals(result, { name: 'world', age: '123' });
@@ -497,7 +498,7 @@ Deno.test('35 match object with template string placeholder with multiple placeh
 
 ```ts
 Deno.test('36 match object with template string placeholder with multiple placeholders (not equal)', () => {
-    const pattern = $`${_('name')} is ${_('age')} years old`;
+    const pattern = _`${_('name')} is ${_('age')} years old`;
     const value = 'world is 123 years';
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -508,7 +509,7 @@ Deno.test('36 match object with template string placeholder with multiple placeh
 Deno.test('37 match object with a regular placeholder with the template string placeholder', () => {
     const pattern = {
         address: _('address'),
-        message: $`${_('name')} is ${_('age')} years old`
+        message: _`${_('name')} is ${_('age')} years old`
     }
     const value = {
         address: '123',
