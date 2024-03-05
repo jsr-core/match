@@ -1,6 +1,6 @@
 {
     "name": "@core/match",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "exports": "./mod.ts",
     "tasks": {
         "generateTest": "deno run --allow-write --allow-read generateTest.ts",
