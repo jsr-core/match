@@ -40,7 +40,7 @@ export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T
 export type Result<P> =
   P extends Placeholder<infer V, Is<infer U>> ? { [v in V]: U } :
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
-  P extends Record<string, infer V> ? Loop<U.ListOf<V>> :
+  P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
 
 type Loop<P, Acc extends object = {}> =
