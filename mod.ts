@@ -38,8 +38,9 @@ export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T
  * All the keys are declared as placeholders in `P` and the values are the types of the matched values.
  */
 export type Result<P> =
+  P extends Placeholder<infer V, Is<infer U>> ? { [v in V]: U } :
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
-  P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
+  P extends Record<string, infer V> ? Loop<U.ListOf<V>> :
   never;
 
 type Loop<P, Acc extends object = {}> =
@@ -115,3 +116,5 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   }
   return undefined;
 }
+
+match({ x: placeholder('x') } as const, 1)
