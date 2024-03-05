@@ -24,7 +24,7 @@ This library is published in JSR and can be used in Deno with `jsr:@core/match`.
 There are only two functions that users need to remember: `$` and `match`.
 
 ```ts
-import { placeholder as $, match } from 'jsr:@core/match';
+import { regularPlaceholder as $, match } from 'jsr:@core/match';
 ```
 
 - `$` is a function for creating structured bound patterns.

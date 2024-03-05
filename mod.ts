@@ -1,4 +1,4 @@
-import { U } from "npm:ts-toolbelt@9.6.0";
+import { U, L } from "npm:ts-toolbelt@9.6.0";
 
 type Key = string | number | symbol
 type Pred = (v: unknown) => boolean;
@@ -10,7 +10,7 @@ type Is<T> = (v: unknown) => v is T;
  * @template T - The type of the key, which extends Key.
  * @template V - The type of the test function, which extends Pred.
  */
-export class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
+export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> {
   name: T;
   test?: V;
   constructor(name: T, test?: V) {
@@ -26,10 +26,23 @@ export class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
  * @template V - The type of the test function, which extends Pred.
  * @param {T} name - The name of the placeholder.
  * @param {V} [test] - The test function of the placeholder.
- * @returns {Placeholder<T, V>} - A new Placeholder object.
+ * @returns {RegularPlaceholder<T, V>} - A new Placeholder object.
  */
-export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): Placeholder<T, V> {
-  return new Placeholder(name, test);
+export function regularPlaceholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V> {
+  return new RegularPlaceholder(name, test);
+}
+
+export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
+  strings: TemplateStringsArray;
+  placeholders: T;
+  constructor(strings: TemplateStringsArray, ...placeholders: T) {
+    this.strings = strings;
+    this.placeholders = placeholders;
+  }
+}
+
+export function templateStringPlaceholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
+  return new TemplateStringPlaceholder(strings, ...placeholders);
 }
 
 /**
@@ -38,7 +51,8 @@ export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T
  * All the keys are declared as placeholders in `P` and the values are the types of the matched values.
  */
 export type Result<P> =
-  P extends Placeholder<infer V, Is<infer U>> ? { [v in V]: U } :
+  P extends RegularPlaceholder<infer V, Is<infer U>> ? { [v in V]: U } :
+  P extends TemplateStringPlaceholder<infer T> ? Loop<T> :
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
   P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
@@ -54,7 +68,7 @@ type Loop<P, Acc extends object = {}> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: any): Result<T> | undefined {
-  if (pattern instanceof Placeholder) {
+  if (pattern instanceof RegularPlaceholder) {
     if (!pattern.test || pattern.test(target)) {
       return { [pattern.name]: target } as any;
     }
@@ -68,13 +82,6 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     }
     for (let i = 0; i < pattern.length; i++) {
       const element = pattern[i];
-      if (element instanceof Placeholder) {
-        if (!element.test || element.test(target[i])) {
-          result[element.name] = target[i];
-          continue;
-        }
-        return undefined;
-      }
       const subResult = match(element, target[i]);
       if (subResult) {
         Object.assign(result, subResult);
@@ -90,7 +97,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     const result = {} as any;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
-        if (value instanceof Placeholder) {
+        if (value instanceof RegularPlaceholder) {
           if (!value.test || value.test(target[key])) {
             result[value.name] = target[key];
             continue;
