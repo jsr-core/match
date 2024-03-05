@@ -101,7 +101,7 @@ export function placeholder<T extends Key, U extends RegularPlaceholder<Key>[], 
  * @param placeholders - The placeholders.
  * @returns A new TemplateStringPlaceholder instance.
  */
-export function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T) {
+export function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
   return new TemplateStringPlaceholder(true, strings, ...placeholders);
 }
 placeholder.greedy = greedy;
