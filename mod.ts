@@ -1,4 +1,4 @@
-import { U, L } from "npm:ts-toolbelt@9.6.0";
+import { U } from "npm:ts-toolbelt@9.6.0";
 
 type Key = string | number | symbol
 type Pred = (v: unknown) => boolean;

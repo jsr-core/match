@@ -1,5 +1,7 @@
 # List the start up tasks. Learn more: https://www.gitpod.io/docs/configure/workspaces/tasks
 tasks:
-  - name: Script Task
-    init: echo 'init script' # runs during prebuild => https://www.gitpod.io/docs/configure/projects/prebuilds
-    command: curl -fsSL https://deno.land/install.sh | sh
+  - name: Install Deno
+    command: |
+      curl -fsSL https://deno.land/install.sh | sh
+      export DENO_INSTALL="/home/gitpod/.deno"
+      export PATH="$DENO_INSTALL/bin:$PATH"
