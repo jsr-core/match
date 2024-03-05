@@ -76,7 +76,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   }
   if (pattern instanceof Array) {
     const result = {} as any;
-    if (!(target instanceof Array) &&
+    if (!(target instanceof Array) ||
         pattern.length > target.length) {
       return undefined;
     }
@@ -97,13 +97,6 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     const result = {} as any;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
-        if (value instanceof RegularPlaceholder) {
-          if (!value.test || value.test(target[key])) {
-            result[value.name] = target[key];
-            continue;
-          }
-          return undefined;
-        }
         const subResult = match(value, target[key]);
         if (subResult) {
           Object.assign(result, subResult);
