@@ -29,7 +29,7 @@ export class Placeholder<T extends Key, V extends Pred = Is<unknown>> {
  * @returns {Placeholder<T, V>} - A new Placeholder object.
  */
 export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): Placeholder<T, V> {
-    return new Placeholder(name, test); 
+  return new Placeholder(name, test);
 }
 
 /**
@@ -37,13 +37,13 @@ export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T
  * This type is a record of keys and values that are matched.
  * All the keys are declared as placeholders in `P` and the values are the types of the matched values.
  */
-export type Result<P> = 
+export type Result<P> =
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
   P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
 
 type Loop<P, Acc extends object = {}> =
-  P extends [Placeholder<infer V, Is<infer U>>, ...infer Others] ? Loop<Others, Acc | { [v in V]: U }> : 
+  P extends [Placeholder<infer V, Is<infer U>>, ...infer Others] ? Loop<Others, Acc | { [v in V]: U }> :
   P extends [infer V, ...infer Others] ? Loop<Others, Acc | Result<V>> :
   U.Merge<Acc>;
 
@@ -54,20 +54,13 @@ type Loop<P, Acc extends object = {}> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: any): Result<T> | undefined {
-  const result: any = {};
+  const result = {} as any;
   if (pattern instanceof Placeholder) {
     if (!pattern.test || pattern.test(target)) {
-      result[pattern.name] = target;
-      return result;
+      return { [pattern.name]: target } as any;
     } else {
       return undefined;
     }
-  }
-  if (pattern === null || pattern === undefined) {
-    if (pattern === target) {
-      return result;
-    }
-    return undefined;
   }
   if (pattern instanceof Array) {
     if (!(target instanceof Array)) {
@@ -77,15 +70,15 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
       return undefined;
     }
     for (let i = 0; i < pattern.length; i++) {
-      const value = pattern[i];
-      if (value instanceof Placeholder) {
-        if (!value.test || value.test(target[i])) {
-          result[value.name] = target[i];
+      const element = pattern[i];
+      if (element instanceof Placeholder) {
+        if (!element.test || element.test(target[i])) {
+          result[element.name] = target[i];
           continue;
         }
         return undefined;
       }
-      const subResult = match(value, target[i]);
+      const subResult = match(element, target[i]);
       if (subResult) {
         Object.assign(result, subResult);
         continue;
@@ -94,27 +87,26 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     }
     return result;
   }
-  if (Object.getPrototypeOf(pattern) === Object.getPrototypeOf({}) && target instanceof Object) {
-    for (const key in pattern) {
+  if (pattern instanceof Object && 
+      target instanceof Object && 
+      Object.getPrototypeOf(pattern) === Object.getPrototypeOf({})) {
+    for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
-        const value = pattern[key];
         if (value instanceof Placeholder) {
           if (!value.test || value.test(target[key])) {
             result[value.name] = target[key];
             continue;
-          } else if (value.test) {
-            return undefined;
           }
+          return undefined;
         }
         const subResult = match(value, target[key]);
         if (subResult) {
           Object.assign(result, subResult);
-        } else {
-          return undefined;
+          continue;
         }
-      } else {
         return undefined;
       }
+      return undefined;
     }
     return result;
   }
