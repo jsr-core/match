@@ -84,7 +84,7 @@ Please feel free to use it as long as you comply with the licence.
 First, load the library.
 
 ```ts
-import { placeholder as $, match } from './mod.ts';
+import { regularPlaceholder as $, match } from './mod.ts';
 import { assertEquals } from 'jsr:@std/assert';
 ```
 

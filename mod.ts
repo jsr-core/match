@@ -96,13 +96,10 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
       Object.getPrototypeOf(pattern) === Object.getPrototypeOf({})) {
     const result = {} as any;
     for (const [key, value] of Object.entries(pattern)) {
-      if (key in target) {
-        const subResult = match(value, target[key]);
-        if (subResult) {
-          Object.assign(result, subResult);
-          continue;
-        }
-        return undefined;
+      const subResult = match(value, target[key])
+      if (key in target && subResult) {
+        Object.assign(result, subResult);
+        continue;
       }
       return undefined;
     }
