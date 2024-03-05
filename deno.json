@@ -11,7 +11,9 @@
             ".vscode/**",
             ".git",
             ".gitignore",
-            "README.test.ts"
+            "README.test.ts",
+            ".gitpod.yml",
+            "deno.lock"
         ]
     }
 }
