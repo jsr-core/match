@@ -31,14 +31,14 @@ import { regularPlaceholder as $, match } from 'jsr:@core/match';
 
     ```ts
     const pattern = {
-        name: $('name'), // this value will be captured as unknown value
+        name: _('name'), // this value will be captured as unknown value
         address: {
-            country: $('country'), // you can write the placeholder anywhere,.
+            country: _('country'), // you can write the placeholder anywhere,.
             state: 'NY', // without place holder, matcher will compares the values using ===
         },
-        age: $('age', isNumber), // you can specify the type of placeholder with the type guard,
-        favorites: ['baseball', $('favorite')], // you can put the placeholder in an array
-        others: [$(1), $(Symbol.other)], // you can declare the placeholder with number or symbol
+        age: _('age', isNumber), // you can specify the type of placeholder with the type guard,
+        favorites: ['baseball', _('favorite')], // you can put the placeholder in an array
+        others: [_(1), _(Symbol.other)], // you can declare the placeholder with number or symbol
     }
     ```
 
@@ -84,7 +84,7 @@ Please feel free to use it as long as you comply with the licence.
 First, load the library.
 
 ```ts
-import { regularPlaceholder as $, match } from './mod.ts';
+import { regularPlaceholder as _, templateStringPlaceholder as $, match } from './mod.ts';
 import { assertEquals } from 'jsr:@std/assert';
 ```
 
@@ -186,7 +186,7 @@ Now, let's use a placeholder. The first step is to declare a single placeholder.
 
 ```ts
 Deno.test('09 declare single placeholder', () => {
-    const pattern = $('a');
+    const pattern = _('a');
     assertEquals(pattern.name, 'a');
     assertEquals(pattern.test, undefined);
 });
@@ -196,7 +196,7 @@ To use the placeholder, apply the match function. The match function returns an 
 
 ```ts
 Deno.test('10 match object with single placeholder', () => {
-    const pattern = $('a');
+    const pattern = _('a');
     const value = 'hello';
     const result = match(pattern, value);
     assertEquals(result, { a: 'hello' });
@@ -207,7 +207,7 @@ To provide a type guard for the placeholder, declare the type guard function as 
 
 ```ts
 Deno.test('11 match object with single placeholder and type guard', () => {
-    const pattern = $('a', (v: unknown): v is string => typeof v === 'string');
+    const pattern = _('a', (v: unknown): v is string => typeof v === 'string');
     const value = 'hello';
     const result = match(pattern, value);
     assertEquals(result, { a: 'hello' });
@@ -218,7 +218,7 @@ If the type guard fails, the match function returns undefined.
 
 ```ts
 Deno.test('12 match object with single placeholder and type guard', () => {
-    const pattern = $('a', (v: unknown): v is string => typeof v === 'string');
+    const pattern = _('a', (v: unknown): v is string => typeof v === 'string');
     const value = 123;
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -229,7 +229,7 @@ Placeholders can also be used in compound objects. The following pattern has two
 
 ```ts
 Deno.test('13 match object with compound object and placeholders', () => {
-    const pattern = { name: $('a'), age: $('b') };
+    const pattern = { name: _('a'), age: _('b') };
     const value = { name: 'hello', age: 123 };
     const result = match(pattern, value);
     assertEquals(result, { a: 'hello', b: 123 });
@@ -241,8 +241,8 @@ Similarly, you can pass the type guard to the placeholder. In this case, the typ
 ```ts
 Deno.test('14 match object with compound object and placeholders (type guard)', () => {
     const pattern = { 
-        name: $('a', (v: unknown): v is string => typeof v === 'string'), 
-        age: $('b', (v: unknown): v is number => typeof v === 'number') 
+        name: _('a', (v: unknown): v is string => typeof v === 'string'), 
+        age: _('b', (v: unknown): v is number => typeof v === 'number') 
     };
     const value = { name: 'hello', age: 123 };
     const result = match(pattern, value);
@@ -254,7 +254,7 @@ It is expected that the match function returns undefined if the object does not 
 
 ```ts
 Deno.test('15 match object with compound object and placeholders (missing key)', () => {
-    const pattern = { name: $('a'), age: $('b') };
+    const pattern = { name: _('a'), age: _('b') };
     const value = { age: 123 };
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -266,8 +266,8 @@ In other cases, the match function returns undefined if the type guard fails. Th
 ```ts
 Deno.test('16 match object with compound object and placeholders (type guard fail)', () => {
     const pattern = { 
-        name: $('a', (v: unknown): v is string => typeof v === 'string'), 
-        age: $('b', (v: unknown): v is number => typeof v === 'number') 
+        name: _('a', (v: unknown): v is string => typeof v === 'string'), 
+        age: _('b', (v: unknown): v is number => typeof v === 'number') 
     };
     const value = { name: 'hello', age: '123' };
     const result = match(pattern, value);
@@ -279,7 +279,7 @@ Placeholders can be used in arrays as well. The following pattern has two placeh
 
 ```ts
 Deno.test('17 match object with array and placeholders', () => {
-    const pattern = [$('a'), $('b')];
+    const pattern = [_('a'), _('b')];
     const value = ['hello', 123];
     const result = match(pattern, value);
     assertEquals(result, { a: 'hello', b: 123 });
@@ -291,8 +291,8 @@ You can pass the type guard to the placeholder in the same way as before, so the
 ```ts
 Deno.test('18 match object with array and placeholders (type guard)', () => {
     const pattern = [
-        $('a', (v: unknown): v is string => typeof v === 'string'), 
-        $('b', (v: unknown): v is number => typeof v === 'number') 
+        _('a', (v: unknown): v is string => typeof v === 'string'), 
+        _('b', (v: unknown): v is number => typeof v === 'number') 
     ];
     const value = ['hello', 123];
     const result = match(pattern, value);
@@ -304,7 +304,7 @@ It is expected that the match function returns undefined if the object does not 
 
 ```ts
 Deno.test('19 match object with array and placeholders (missing key)', () => {
-    const pattern = [$('a'), $('b')];
+    const pattern = [_('a'), _('b')];
     const value = [123];
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -316,8 +316,8 @@ In other cases, the match function returns undefined if the type guard fails. Th
 ```ts
 Deno.test('20 match object with array and placeholders (type guard fail)', () => {
     const pattern = [
-        $('a', (v: unknown): v is string => typeof v === 'string'), 
-        $('b', (v: unknown): v is number => typeof v === 'number') 
+        _('a', (v: unknown): v is string => typeof v === 'string'), 
+        _('b', (v: unknown): v is number => typeof v === 'number') 
     ];
     const value = ['hello', '123'];
     const result = match(pattern, value);
@@ -329,7 +329,7 @@ Placeholders can be used in both objects and arrays at the same time. The follow
 
 ```ts
 Deno.test('21 match object with object, array, and placeholders', () => {
-    const pattern = { name: $('a'), age: [$('b')] };
+    const pattern = { name: _('a'), age: [_('b')] };
     const value = { name: 'hello', age: [123] };
     const result = match(pattern, value);
     assertEquals(result, { a: 'hello', b: 123 });
@@ -341,8 +341,8 @@ In the same manner, you can pass the type guard to the placeholder. Now, the typ
 ```ts
 Deno.test('22 match object with object, array, and placeholders (type guard)', () => {
     const pattern = { 
-        name: $('a', (v: unknown): v is string => typeof v === 'string'), 
-        age: [$('b', (v: unknown): v is number => typeof v === 'number')] 
+        name: _('a', (v: unknown): v is string => typeof v === 'string'), 
+        age: [_('b', (v: unknown): v is number => typeof v === 'number')] 
     };
     const value = { name: 'hello', age: [123] };
     const result = match(pattern, value);
@@ -354,7 +354,7 @@ It is expected that the match function will return undefined if the object does 
 
 ```ts
 Deno.test('23 match object with object, array, and placeholders (missing key)', () => {
-    const pattern = { name: $('a'), age: [$('b')] };
+    const pattern = { name: _('a'), age: [_('b')] };
     const value = { age: [123] };
     const result = match(pattern, value);
     assertEquals(result, undefined);
@@ -366,8 +366,8 @@ In other cases, the match function returns undefined if the type guard fails. Th
 ```ts
 Deno.test('24 match object with object, array, and placeholders (type guard fail)', () => {
     const pattern = { 
-        name: $('a', (v: unknown): v is string => typeof v === 'string'), 
-        age: [$('b', (v: unknown): v is number => typeof v === 'number')] 
+        name: _('a', (v: unknown): v is string => typeof v === 'string'), 
+        age: [_('b', (v: unknown): v is number => typeof v === 'number')] 
     };
     const value = { name: 'hello', age: ['123'] };
     const result = match(pattern, value);
@@ -387,7 +387,7 @@ class User {
     }
 }
 Deno.test('25 match object with user-defined class and placeholders', () => {
-    const pattern = { name: $('name'), age: $('age', (v: unknown): v is number => typeof v === 'number') };
+    const pattern = { name: _('name'), age: _('age', (v: unknown): v is number => typeof v === 'number') };
     const value = new User('hello', 123);
     const result = match(pattern, value);
     assertEquals(result, { name: 'hello', age: 123 });
@@ -399,8 +399,8 @@ In the same manner, you can pass the type guard to the placeholder. Now, the typ
 ```ts
 Deno.test('26 match object with user-defined class and placeholders (type guard)', () => {
     const pattern = { 
-        name: $('name', (v: unknown): v is string => typeof v === 'string'), 
-        age: $('age', (v: unknown): v is number => typeof v === 'number') 
+        name: _('name', (v: unknown): v is string => typeof v === 'string'), 
+        age: _('age', (v: unknown): v is number => typeof v === 'number') 
     };
     const value = new User('hello', 123);
     const result = match(pattern, value);
@@ -412,7 +412,7 @@ It is expected that the match function will return undefined if the object does 
 
 ```ts
 Deno.test('27 match object with user-defined class and placeholders (missing key)', () => {
-    const pattern = { name: $('name'), age: $('age') };
+    const pattern = { name: _('name'), age: _('age') };
     const value = new User('hello', 123);
     const result = match(pattern, value);
     assertEquals(result, { name: 'hello', age: 123 });
@@ -438,5 +438,83 @@ Deno.test('29 match object with primitive value (not equal)', () => {
     const value = 123;
     const result = match(pattern, value);
     assertEquals(result, undefined);
+});
+```
+
+```ts
+Deno.test('30 match object with template string placeholder', () => {
+    const pattern = $`hello ${_('name')}`;
+    const value = 'hello world';
+    const result = match(pattern, value);
+    assertEquals(result, { name: 'world' });
+});
+```
+
+```ts
+Deno.test('31 match object with template string placeholder (type guard)', () => {
+    const pattern = $`hello ${_('name', (v: unknown): v is string => typeof v === 'string')}`;
+    const value = 'hello world';
+    const result = match(pattern, value);
+    assertEquals(result, { name: 'world' });
+});
+```
+
+```ts
+Deno.test('32 match object with template string placeholder (length not match)', () => {
+    const pattern = $`hello ${_('name')}`;
+    const value = 'hello';
+    const result = match(pattern, value);
+    assertEquals(result, undefined);
+});
+```
+
+```ts
+Deno.test('33 match object with template string placeholder (not string)', () => {
+    const pattern = $`hello ${_('name')}`;
+    const value = 123;
+    const result = match(pattern, value);
+    assertEquals(result, undefined);
+});
+```
+
+```ts
+Deno.test('34 match object with template string placeholder (not equal)', () => {
+    const pattern = $`hello ${_('name')}`;
+    const value = 'world';
+    const result = match(pattern, value);
+    assertEquals(result, undefined);
+});
+```
+
+```ts
+Deno.test('35 match object with template string placeholder with multiple placeholders', () => {
+    const pattern = $`${_('name')} is ${_('age')} years old`;
+    const value = 'world is 123 years old';
+    const result = match(pattern, value);
+    assertEquals(result, { name: 'world', age: '123' });
+});
+```
+
+```ts
+Deno.test('36 match object with template string placeholder with multiple placeholders (not equal)', () => {
+    const pattern = $`${_('name')} is ${_('age')} years old`;
+    const value = 'world is 123 years';
+    const result = match(pattern, value);
+    assertEquals(result, undefined);
+});
+```
+
+```ts
+Deno.test('37 match object with a regular placeholder with the template string placeholder', () => {
+    const pattern = {
+        address: _('address'),
+        message: $`${_('name')} is ${_('age')} years old`
+    }
+    const value = {
+        address: '123',
+        message: 'world is 123 years old'
+    };
+    const result = match(pattern, value);
+    assertEquals(result, { address: '123', name: 'world', age: '123' });
 });
 ```
