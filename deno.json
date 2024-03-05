@@ -1,6 +1,6 @@
 {
     "name": "@core/match",
-    "version": "0.1.2",
+    "version": "0.1.4",
     "exports": "./mod.ts",
     "tasks": {
         "generateTest": "deno run --allow-write --allow-read generateTest.ts",
@@ -13,7 +13,8 @@
             ".gitignore",
             "README.test.ts",
             ".gitpod.yml",
-            "deno.lock"
+            "deno.lock",
+            "generateTest.ts"
         ]
     }
 }
