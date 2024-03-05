@@ -19,40 +19,29 @@ export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> {
   }
 }
 
-/**
- * Function to create a new Placeholder object.
- * 
- * @template T - The type of the key, which extends Key.
- * @template V - The type of the test function, which extends Pred.
- * @param {T} name - The name of the placeholder.
- * @param {V} [test] - The test function of the placeholder.
- * @returns {RegularPlaceholder<T, V>} - A new Placeholder object.
- */
-export function regularPlaceholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V> {
-  return new RegularPlaceholder(name, test);
-}
-
 export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
   strings: TemplateStringsArray;
   placeholders: T;
-  constructor(strings: TemplateStringsArray, ...placeholders: T) {
+  greedy: boolean;
+  constructor(greedy: boolean, strings: TemplateStringsArray, ...placeholders: T) {
+    this.greedy = greedy;
     this.strings = strings;
     this.placeholders = placeholders;
   }
-}
-
-export function templateStringPlaceholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
-  return new TemplateStringPlaceholder(strings, ...placeholders);
 }
 
 export function placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 export function placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 export function placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(name: T, ...test: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
   if (name instanceof Array) {
-    return templateStringPlaceholder(name as any, ...test as any);
+    return new TemplateStringPlaceholder(false, name as any, ...test as any);
   }
-  return regularPlaceholder(name, ...test as any);
+  return new RegularPlaceholder(name, ...test as any);
 }
+function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
+  return new TemplateStringPlaceholder(true, strings, ...placeholders);
+}
+placeholder.greedy = greedy;
 
 /** 
  * Result type is a recursive type that represents the result of `match` function.
@@ -84,46 +73,25 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     return undefined;
   }
   if (pattern instanceof TemplateStringPlaceholder) {
-    if (!(target instanceof String || 
-          typeof target === 'string')) {
+    if (typeof target !== 'string') {
+      return undefined;
+    }
+    const sep = pattern.greedy ? '(.*)' : '(.*?)';
+    const re = `^${pattern.strings.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(sep)}$`
+    const m = target.match(new RegExp(re));
+    if (!m) {
       return undefined;
     }
     const result = {} as any;
-    if (target.startsWith(pattern.strings[0]) === false) {
-      return undefined;
-    }
-    let prevEnd = pattern.strings[0].length;
-    for (let i = 0; i < pattern.placeholders.length - 1; i++) {
-      const nextStart = target.indexOf(pattern.strings[i+1], prevEnd);
-      if (nextStart === -1) {
-        return undefined;
-      }
-      const subResult = match(pattern.placeholders[i], target.slice(prevEnd, nextStart));
+    for (let i = 0; i < pattern.placeholders.length; i++) {
+      const subResult = match(pattern.placeholders[i], m[i+1]);
       if (subResult) {
         Object.assign(result, subResult);
-        prevEnd = nextStart + pattern.strings[i+1].length;
         continue;
       }
       return undefined;
     }
-    if (pattern.strings.at(-1) !== '') {
-      const nextStart = target.indexOf(pattern.strings.at(-1)!, prevEnd);
-      if (nextStart === -1) {
-        return undefined;
-      }
-      const subResult = match(pattern.placeholders.at(-1), target.slice(prevEnd, nextStart));
-      if (subResult) {
-        Object.assign(result, subResult);
-        return result;
-      }
-      return undefined;
-    }
-    const subResult = match(pattern.placeholders.at(-1), target.slice(prevEnd));
-    if (subResult) {
-      Object.assign(result, subResult);
-      return result;
-    }
-    return undefined;
+    return result;
   }
   if (pattern instanceof Array) {
     const result = {} as any;
