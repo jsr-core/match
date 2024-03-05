@@ -54,19 +54,16 @@ type Loop<P, Acc extends object = {}> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: any): Result<T> | undefined {
-  const result = {} as any;
   if (pattern instanceof Placeholder) {
     if (!pattern.test || pattern.test(target)) {
       return { [pattern.name]: target } as any;
-    } else {
-      return undefined;
     }
+    return undefined;
   }
   if (pattern instanceof Array) {
-    if (!(target instanceof Array)) {
-      return undefined;
-    }
-    if (pattern.length > target.length) {
+    const result = {} as any;
+    if (!(target instanceof Array) &&
+        pattern.length > target.length) {
       return undefined;
     }
     for (let i = 0; i < pattern.length; i++) {
@@ -90,6 +87,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   if (pattern instanceof Object && 
       target instanceof Object && 
       Object.getPrototypeOf(pattern) === Object.getPrototypeOf({})) {
+    const result = {} as any;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
         if (value instanceof Placeholder) {
@@ -111,7 +109,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     return result;
   }
   if (pattern === target) {
-    return result;
+    return {} as Result<T>;
   }
   return undefined;
 }
