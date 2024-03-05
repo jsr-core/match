@@ -116,5 +116,3 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   }
   return undefined;
 }
-
-match({ x: placeholder('x') } as const, 1)
