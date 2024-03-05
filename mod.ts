@@ -1,3 +1,12 @@
+/**
+ * core/match -- a pattern matching library for JavaScript and TypeScript
+ * 
+ * Copyright (c) 2023 TANIGUCHI Masaya. All rights reserved.
+ * This code is licensed under the MIT License. See LICENSE file for more information.
+ * 
+ * SPDX-License-Identifier: MIT
+ */
+
 import { U } from "npm:ts-toolbelt@9.6.0";
 
 type Key = string | number | symbol
