@@ -44,7 +44,6 @@ export type Result<P> =
   never;
 
 type Loop<P, Acc extends object = {}> =
-  P extends [Placeholder<infer V, Is<infer U>>, ...infer Others] ? Loop<Others, Acc | { [v in V]: U }> :
   P extends [infer V, ...infer Others] ? Loop<Others, Acc | Result<V>> :
   U.Merge<Acc>;
 
@@ -116,3 +115,5 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   }
   return undefined;
 }
+
+match([placeholder('x')], 1)
