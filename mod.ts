@@ -9,7 +9,7 @@
 
 import { U } from "npm:ts-toolbelt@9.6.0";
 
-type Key = string | number | symbol
+type Key = string | number | symbol;
 type Pred = (v: unknown) => boolean;
 type Is<T> = (v: unknown) => v is T;
 
@@ -25,13 +25,33 @@ function is<T>(v: unknown, t: new (...args: any[]) => T): v is T {
 }
 
 /**
+ * AnonymousPlaceholder class that holds a test function.
+ * 
+ * @template V - Type guard function.
+ */
+export class AnonymousPlaceholder<V extends Pred = Is<unknown>> {
+  /** The test function to validate the placeholder value. */
+  test?: V;
+  
+  /**
+   * Represents a class constructor
+   * @param [test] - The test parameter (optional).
+   */
+  constructor(test?: V) {
+    this.test = test;
+  }
+}
+
+/**
  * RegularPlaceholder class that holds a name and a test function.
  * 
  * @template T - Name of the placeholder.
  * @template V - Type guard function.
  */
 export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> {
+  /** The name of the placeholder. */
   name: T;
+  /** The test function to validate the placeholder value. */
   test?: V;
 
   /**
@@ -50,8 +70,11 @@ export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> {
  * @template T - Tuple of regular placeholders.
  */
 export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
+  /** The template strings array. */
   strings: TemplateStringsArray;
+  /** The regular placeholders. */
   placeholders: T;
+  /** Indicates whether the matching should be greedy or not. */
   greedy: boolean;
 
   /**
@@ -67,13 +90,17 @@ export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
   }
 }
 
+function _placeholder<V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
 function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 function _placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStrings: T, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
-  if (Array.isArray(nameOrStrings)) {
-    return new TemplateStringPlaceholder(false, nameOrStrings as any, ...testOrPlaceholders as any);
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
+  if (typeof nameOrStringsOrTest === 'function' || nameOrStringsOrTest === undefined) {
+    return new AnonymousPlaceholder(nameOrStringsOrTest as any);
   }
-  return new RegularPlaceholder(nameOrStrings, ...testOrPlaceholders as any);
+  if (Array.isArray(nameOrStringsOrTest)) {
+    return new TemplateStringPlaceholder(false, nameOrStringsOrTest as any, ...testOrPlaceholders as any);
+  }
+  return new RegularPlaceholder(nameOrStringsOrTest as any, ...testOrPlaceholders as any);
 }
 
 function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
@@ -85,6 +112,14 @@ _placeholder.greedy = greedy;
  * Represents a placeholder that can be used in pattern matching.
  */
 export interface Placeholder {
+  /**
+   * Creates an anonymous placeholder with an optional test function.
+   * 
+   * @param test - The test function to validate the placeholder value.
+   * @returns An anonymous placeholder with the specified test function.
+   */
+  <V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
+
   /**
    * Creates a regular placeholder with an optional name and test function.
    * 
@@ -129,6 +164,7 @@ export const placeholder: Placeholder = _placeholder;
 export type Result<P> =
   P extends RegularPlaceholder<infer V, Is<infer U>> ? { [v in V]: U } :
   P extends TemplateStringPlaceholder<infer T> ? Loop<T> :
+  P extends AnonymousPlaceholder ? never :
   P extends Array<infer A> ? Loop<U.ListOf<A>> :
   P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
@@ -144,6 +180,12 @@ type Loop<P, Acc extends Record<Key, unknown> = never> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: any): Result<T> | undefined {
+  if (is(pattern, AnonymousPlaceholder)) {
+    if (!pattern.test || pattern.test(target)) {
+      return {} as Result<T>;
+    }
+    return undefined;
+  }
   if (is(pattern, RegularPlaceholder)) {
     if (!pattern.test || pattern.test(target)) {
       return { [pattern.name]: target } as Result<T>;
