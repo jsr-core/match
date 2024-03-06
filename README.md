@@ -1,7 +1,8 @@
 # TS Match
 
-\[ [GitHub tani/ts-match](https://github.com/tani/ts-match) \] \[
-[JSR @core/match](https://jsr.io/@core/match) \]
+![core/match](https://typography.deno.dev/render?text=%40core%2Fmatch&family=Poiret+One&weight=400&size=50&color=%23ff8040)
+
+\[ [GitHub tani/ts-match](https://github.com/tani/ts-match) \] \[[JSR @core/match](https://jsr.io/@core/match) \]
 
 A pattern matching library for JavaScript/ TypeScript
 
