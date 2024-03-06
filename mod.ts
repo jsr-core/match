@@ -173,8 +173,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     let result: Result<T> | undefined;
     const ok = Array.isArray(target) && pattern.length <= target.length;
     for (let i = 0; ok && i < pattern.length; i++) {
-      const element = pattern[i];
-      const subResult = match(element, target[i]);
+      const subResult = match(pattern[i], target[i]);
       if (subResult) {
         result = { ...(result ?? {} as Result<T>), ...subResult };
         continue;
