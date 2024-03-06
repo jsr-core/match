@@ -14,6 +14,17 @@ type Pred = (v: unknown) => boolean;
 type Is<T> = (v: unknown) => v is T;
 
 /**
+ * Checks if the value is an instance of the specified class.
+ * @param v - The value to check.
+ * @param t - The class to check against.
+ * @returns True if the value is an instance of the specified class, false otherwise.
+ * @template T - The type of the class.
+ */
+function is<T>(v: unknown, t: new (...args: any[]) => T): v is T {
+  return v instanceof Object && Object.getPrototypeOf(v) === t.prototype;
+}
+
+/**
  * RegularPlaceholder class that holds a name and a test function.
  * 
  * @template T - Name of the placeholder.
@@ -56,11 +67,10 @@ export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
   }
 }
 
-
 function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 function _placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStrings: T, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> {
-  if (nameOrStrings instanceof Array) {
+  if (Array.isArray(nameOrStrings)) {
     return new TemplateStringPlaceholder(false, nameOrStrings as any, ...testOrPlaceholders as any);
   }
   return new RegularPlaceholder(nameOrStrings, ...testOrPlaceholders as any);
@@ -123,7 +133,7 @@ export type Result<P> =
   P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
   never;
 
-type Loop<P, Acc extends object = {}> =
+type Loop<P, Acc extends Record<Key, unknown> = never> =
   P extends [infer V, ...infer Others] ? Loop<Others, Acc | Result<V>> :
   U.Merge<Acc>;
 
@@ -134,13 +144,13 @@ type Loop<P, Acc extends object = {}> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: any): Result<T> | undefined {
-  if (pattern instanceof RegularPlaceholder) {
+  if (is(pattern, RegularPlaceholder)) {
     if (!pattern.test || pattern.test(target)) {
       return { [pattern.name]: target } as Result<T>;
     }
     return undefined;
   }
-  if (pattern instanceof TemplateStringPlaceholder) {
+  if (is(pattern, TemplateStringPlaceholder)) {
     if (typeof target !== 'string') {
       return undefined;
     }
@@ -173,9 +183,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     }
     return result;
   }
-  if (pattern instanceof Object &&
-      target instanceof Object &&
-      Object.getPrototypeOf(pattern) === Object.prototype) {
+  if (is(pattern, Object) && target instanceof Object) {
     const result = {} as Result<T>;
     for (const [key, value] of Object.entries(pattern)) {
       const subResult = match(value, target[key])
