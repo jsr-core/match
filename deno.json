@@ -1,20 +1,20 @@
 {
-    "name": "@core/match",
-    "version": "0.1.9",
-    "exports": "./mod.ts",
-    "tasks": {
-        "generateTest": "deno run --allow-write --allow-read generateTest.ts",
-        "test": "deno task generateTest && deno test"
-    },
-    "publish": {
-        "exclude": [
-            ".vscode/**",
-            ".git",
-            ".gitignore",
-            "README.test.ts",
-            ".gitpod.yml",
-            "deno.lock",
-            "generateTest.ts"
-        ]
-    }
+  "name": "@core/match",
+  "version": "0.1.9",
+  "exports": "./mod.ts",
+  "tasks": {
+    "generateTest": "deno run --allow-write --allow-read generateTest.ts",
+    "test": "deno task generateTest && deno test"
+  },
+  "publish": {
+    "exclude": [
+      ".vscode/**",
+      ".git",
+      ".gitignore",
+      "README.test.ts",
+      ".gitpod.yml",
+      "deno.lock",
+      "generateTest.ts"
+    ]
+  }
 }
