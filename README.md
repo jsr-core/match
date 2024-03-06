@@ -1,11 +1,17 @@
 # TS Match
 
+\[ [GitHub tani/ts-match](https://github.com/tani/ts-match) \] \[ [JSR @core/match](https://jsr.io/@core/match) \]
+
 A pattern matching library for JavaScript/ TypeScript
 
 EcmaScript has a structured binding. It is a very useful notation for extracting only the necessary parts from a
 complex structure. However, this structured binding is incomplete for use as pattern matching. Because, To do a
 structured binding, the pre-assigned value must match the pattern, If it does not match the pattern, an exception is
 thrown.
+
+```ts
+const { a } = JSON.parse("{}") // ERROR!
+```
 
 Therefore, to do structured binding, TypeScript either guarantees that the structure matches at compile time, or it
 does not, validation libraries such as zod or unknownutil checks at runtime that the structure matches. The former is
