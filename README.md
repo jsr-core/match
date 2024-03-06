@@ -572,7 +572,7 @@ Deno.test("match object with primitive string value (not equal)", () => {
 The match function also supports template string placeholders. The following
 pattern has a template string placeholder, `name`. Note that the resulting
 object has a `name` key, and the value of the object is `john`. The type of the
-`name` value is `unknown` in TypeScript because the placeholder has no type
+`name` value is `string` in TypeScript because the placeholder has no type
 guard.
 
 ```ts
@@ -623,14 +623,9 @@ in TypeScript.
 
 ```ts
 Deno.test("match object with template string placeholder (type guard)", () => {
-  const pattern = _`1 + 1 = ${
-    _(
-      "answer",
-      (
-        v: unknown,
-      ): v is `${number}` => (typeof v === "string" && !isNaN(Number(v))),
-    )
-  }`;
+  const isNumString = (v: unknown): v is `${number}` =>
+    typeof v === "string" && !isNaN(Number(v));
+  const pattern = _`1 + 1 = ${_("answer", isNumString)}`;
   const value = "1 + 1 = 2";
   const result = match(pattern, value);
   assertEquals(result, { answer: "2" });
@@ -668,7 +663,7 @@ The match function also supports template string placeholders with multiple
 placeholders. The following pattern has two template string placeholders, `name`
 and `age`. Note that the resulting object has `name` and `age` keys, and the
 values of the object are `john` and `123` respectively. The type of the `name`
-value is `unknown`, and the type of the `age` value is `unknown` in TypeScript
+value is `string`, and the type of the `age` value is `string` in TypeScript
 because the placeholders have no type guards.
 
 ```ts
@@ -698,7 +693,7 @@ The match function also supports template string placeholders with greedy mode.
 The following pattern has two template string placeholders, `name` and `age`.
 Note that the resulting object has `name` and `age` keys, and the values of the
 object are `john` and `123` respectively. The type of the `name` value is
-`unknown`, and the type of the `age` value is `unknown` in TypeScript because
+`string`, and the type of the `age` value is `string` in TypeScript because
 the placeholders have no type guards.
 
 ```ts
@@ -715,8 +710,8 @@ placeholder and a template string placeholder. The following pattern has a
 regular placeholder, `address`, and a template string placeholder, `message`.
 Note that the resulting object has `address`, `name`, and `age` keys, and the
 values of the object are `123`, `john`, and `123` respectively. The type of the
-`address` value is `unknown`, and the type of the `name` and `age` values are
-`unknown` in TypeScript because the placeholders have no type guards.
+`address` value is `string`, and the type of the `name` and `age` values are
+`string` in TypeScript because the placeholders have no type guards.
 
 ```ts
 Deno.test("match object with a regular placeholder with the template string placeholder", () => {
