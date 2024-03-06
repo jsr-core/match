@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { U } from "npm:ts-toolbelt@9.6.0";
+import { U, A, L } from "npm:ts-toolbelt@9.6.0";
 
 type Key = string | number | symbol;
 type Pred = (v: unknown) => boolean;
@@ -162,16 +162,31 @@ export const placeholder: Placeholder = _placeholder;
  * @template P - The pattern to match against.
  */
 export type Result<P> =
-  P extends RegularPlaceholder<infer V, Is<infer U>> ? { [v in V]: U } :
-  P extends TemplateStringPlaceholder<infer T> ? Loop<T> :
-  P extends AnonymousPlaceholder ? never :
-  P extends Array<infer A> ? Loop<U.ListOf<A>> :
-  P extends Record<Key, infer V> ? Loop<U.ListOf<V>> :
-  never;
+  P extends RegularPlaceholder<infer V, Is<infer U>> ? 
+    { [v in V]: U } :
+    P extends TemplateStringPlaceholder<infer T> ? 
+      LoopTemplateStringArgs<T> :
+      P extends AnonymousPlaceholder ? 
+        never :
+        P extends Array<infer A> ?
+          LoopOtherArgs<U.ListOf<A>> :
+          P extends Record<Key, infer V> ? 
+            LoopOtherArgs<U.ListOf<V>> :
+            never;
 
-type Loop<P, Acc extends Record<Key, unknown> = never> =
-  P extends [infer V, ...infer Others] ? Loop<Others, Acc | Result<V>> :
-  U.Merge<Acc>;
+type LoopTemplateStringArgs<P, Acc extends Record<Key, unknown> = never> =
+  P extends [RegularPlaceholder<infer V, Is<infer U>>, ...infer Others] ? 
+    A.Equals<U, unknown> extends 1 ? 
+      LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<string>>>> :
+      LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<U>>>> :
+    P extends [infer T, ...infer Others] ? 
+      LoopTemplateStringArgs<Others, Acc | Result<T>> :
+      U.Merge<Acc>;
+
+type LoopOtherArgs<P, Acc extends Record<Key, unknown> = never> =
+  P extends [infer V, ...infer Others] ? 
+    LoopOtherArgs<Others, Acc | Result<V>> :
+    U.Merge<Acc>;
 
 /**
  * Matches a pattern against a target object.
