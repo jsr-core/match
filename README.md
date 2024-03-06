@@ -604,14 +604,9 @@ the object does not match the pattern because the value is not a number.
 
 ```ts
 Deno.test("match object with template string placeholder (type guard, fail)", () => {
-  const pattern = _`1 + 1 = ${
-    _(
-      "answer",
-      (
-        v: unknown,
-      ): v is `${number}` => (typeof v === "string" && !isNaN(Number(v))),
-    )
-  }`;
+  const isNumString = (v: unknown): v is `${number}` =>
+    typeof v === "string" && !isNaN(Number(v));
+  const pattern = _`1 + 1 = ${_("answer", isNumString)}`;
   const value = "1 + 1 = infinity";
   const result = match(pattern, value);
   assertEquals(result, undefined);
