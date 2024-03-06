@@ -186,7 +186,7 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
     const result = {} as Result<T>;
     for (const [key, value] of Object.entries(pattern)) {
       const subResult = match(value, target[key])
-      if (!!Object.getOwnPropertyDescriptor(target, key) && subResult) {
+      if (key in target && subResult) {
         Object.assign(result, subResult);
         continue;
       }
