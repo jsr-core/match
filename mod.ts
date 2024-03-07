@@ -93,14 +93,14 @@ export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
 function _placeholder<V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
 function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 function _placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [U] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [V] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
   if (typeof nameOrStringsOrTest === 'function' || nameOrStringsOrTest === undefined) {
-    return new AnonymousPlaceholder(nameOrStringsOrTest as any);
+    return new AnonymousPlaceholder(nameOrStringsOrTest);
   }
   if (Array.isArray(nameOrStringsOrTest)) {
-    return new TemplateStringPlaceholder(false, nameOrStringsOrTest as any, ...testOrPlaceholders as any);
+    return new TemplateStringPlaceholder(false, nameOrStringsOrTest as TemplateStringsArray, ...testOrPlaceholders as U);
   }
-  return new RegularPlaceholder(nameOrStringsOrTest as any, ...testOrPlaceholders as any);
+  return new RegularPlaceholder(nameOrStringsOrTest as T, ...testOrPlaceholders as [V]);
 }
 
 function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
@@ -194,7 +194,7 @@ type LoopOtherArgs<P, Acc extends Record<Key, unknown> = never> =
  * @param target - The target object to match.
  * @returns The result of the match or undefined if there is no match.
  */
-export function match<T>(pattern: T, target: any): Result<T> | undefined {
+export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
   if (is(pattern, AnonymousPlaceholder)) {
     if (!pattern.test || pattern.test(target)) {
       return {} as Result<T>;
@@ -242,10 +242,12 @@ export function match<T>(pattern: T, target: any): Result<T> | undefined {
   if (is(pattern, Object) && target instanceof Object) {
     const result = {} as Result<T>;
     for (const [key, value] of Object.entries(pattern)) {
-      const subResult = match(value, target[key])
-      if (key in target && subResult) {
-        Object.assign(result, subResult);
-        continue;
+      if (key in target) {
+        const subResult = match(value, (target as any)[key]);
+        if (subResult) {
+          Object.assign(result, subResult);
+          continue;
+        }
       }
       return undefined;
     }
