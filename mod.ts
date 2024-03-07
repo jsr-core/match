@@ -93,14 +93,27 @@ export class TemplateStringPlaceholder<T extends RegularPlaceholder<Key>[]> {
 function _placeholder<V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
 function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 function _placeholder<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [V] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
-  if (typeof nameOrStringsOrTest === 'function' || nameOrStringsOrTest === undefined) {
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [] | [V] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
+  const isRegularPlaceholders =
+    (v: unknown[]): v is U => v.every(p => is(p, RegularPlaceholder));
+  const isKey =
+    (v: unknown): v is T => typeof v === 'string' || typeof v === 'number' || typeof v === 'symbol';
+  const maybeTypeGuard =
+    (v: unknown): v is V | undefined => typeof v === 'function' || v === undefined;
+  const isTemplateStringsArray =
+    (v: unknown): v is TemplateStringsArray => Array.isArray(v) && v.every(s => typeof s === 'string');
+  if (maybeTypeGuard(nameOrStringsOrTest)) {
     return new AnonymousPlaceholder(nameOrStringsOrTest);
+  } else if (isKey(nameOrStringsOrTest)) {
+    if (maybeTypeGuard(testOrPlaceholders[0])) {
+      return new RegularPlaceholder(nameOrStringsOrTest, testOrPlaceholders[0]);
+    }
+  } else if (isTemplateStringsArray(nameOrStringsOrTest)) {
+    if (isRegularPlaceholders(testOrPlaceholders)) {
+      return new TemplateStringPlaceholder(false, nameOrStringsOrTest, ...testOrPlaceholders);
+    }
   }
-  if (Array.isArray(nameOrStringsOrTest)) {
-    return new TemplateStringPlaceholder(false, nameOrStringsOrTest as TemplateStringsArray, ...testOrPlaceholders as U);
-  }
-  return new RegularPlaceholder(nameOrStringsOrTest as T, ...testOrPlaceholders as [V]);
+  throw new Error('Invalid arguments');
 }
 
 function greedy<T extends RegularPlaceholder<Key>[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
