@@ -24,14 +24,14 @@ function is<T>(v: unknown, t: new (...args: any[]) => T): v is T {
   return v instanceof Object && Object.getPrototypeOf(v) === t.prototype;
 }
 
-export class AbstractPlaceholder {}
+export class Placeholder {}
 
 /**
  * AnonymousPlaceholder class that holds a test function.
  * 
  * @template V - Type guard function.
  */
-export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends AbstractPlaceholder {
+export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Placeholder {
   /** The test function to validate the placeholder value. */
   test?: V;
   
@@ -51,7 +51,7 @@ export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Abstrac
  * @template T - Name of the placeholder.
  * @template V - Type guard function.
  */
-export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> extends AbstractPlaceholder {
+export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> extends Placeholder {
   /** The name of the placeholder. */
   name: T;
   /** The test function to validate the placeholder value. */
@@ -73,7 +73,7 @@ export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> ext
  * Represents a template string placeholder with optional regular placeholders.
  * @template T - Tuple of regular placeholders.
  */
-export class TemplateStringPlaceholder<T extends AbstractPlaceholder[]>  extends AbstractPlaceholder {
+export class TemplateStringPlaceholder<T extends Placeholder[]>  extends Placeholder {
   /** The template strings array. */
   strings: TemplateStringsArray;
   /** The regular placeholders. */
@@ -97,10 +97,13 @@ export class TemplateStringPlaceholder<T extends AbstractPlaceholder[]>  extends
 
 function _placeholder<V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
 function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
-function _placeholder<T extends AbstractPlaceholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(nameOrStringsOrTest?: T | TemplateStringsArray | V, ...testOrPlaceholders: [] | [V] | U): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
+function _placeholder<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(
+  nameOrStringsOrTest?: T | TemplateStringsArray | V,
+  ...testOrPlaceholders: [] | [V] | U
+): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
   const isAbstractPlaceholders =
-    (v: unknown[]): v is U => v.every(p => p instanceof AbstractPlaceholder);
+    (v: unknown[]): v is U => v.every(p => p instanceof Placeholder);
   const isKey =
     (v: unknown): v is T => typeof v === 'string' || typeof v === 'number' || typeof v === 'symbol';
   const maybeTypeGuard =
@@ -121,7 +124,7 @@ function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V exte
   throw new Error('Invalid arguments');
 }
 
-function greedy<T extends AbstractPlaceholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
+function greedy<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
   return new TemplateStringPlaceholder(true, strings, ...placeholders);
 }
 _placeholder.greedy = greedy;
@@ -129,7 +132,7 @@ _placeholder.greedy = greedy;
 /**
  * Represents a placeholder that can be used in pattern matching.
  */
-export interface Placeholder {
+export interface PlaceholderFactory {
   /**
    * Creates an anonymous placeholder with an optional test function.
    * 
@@ -154,7 +157,7 @@ export interface Placeholder {
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
    */
-  <T extends AbstractPlaceholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+  <T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 
   /**
    * Creates a template string placeholder with greedy matching.
@@ -163,14 +166,14 @@ export interface Placeholder {
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
    */
-  greedy<T extends AbstractPlaceholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+  greedy<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 }
 
 
 /**
  * A placeholder constant.
  */
-export const placeholder: Placeholder = _placeholder;
+export const placeholder: PlaceholderFactory = _placeholder;
 
 /** 
  * Result type is a recursive type that represents the result of `match` function.
