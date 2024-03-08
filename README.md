@@ -11,7 +11,7 @@ binding, the pre-assigned value must match the pattern, If it does not match the
 pattern, an exception is thrown.
 
 ```ts
-const { a } = JSON.parse("{}"); // ERROR!
+const { a } = JSON.parse("null"); // ERROR!
 ```
 
 Therefore, to do structured binding, TypeScript either guarantees that the
@@ -21,8 +21,8 @@ impotent for data whose structure is not determined at compile time, such as
 JSON data. The latter required writing two structured binding patterns and two
 validation patterns.
 
-This library can perform structured binding and validation simultaneously, while
-preserving compile-time type information, It is a library that enables true
+**This library can perform structured binding and validation simultaneously, while
+preserving compile-time type information.** It is a library that enables true
 pattern matching and brings EcmaScript's structured binding to perfection.
 
 Again, this is not just for TypeScript, it is also useful in JavaScript.
@@ -49,6 +49,7 @@ import { match, placeholder as _ } from "jsr:@core/match";
     age: _("age", isNumber), // you can specify the type of placeholder with the type guard,
     favorites: ["baseball", _("favorite")], // you can put the placeholder in an array
     others: [_(1), _(Symbol.other)], // you can declare the placeholder with number or symbol
+    message: _`Hello, ${_("nickname")}` // you can put the placeholder in the template string.
   };
   ```
 
@@ -67,7 +68,8 @@ import { match, placeholder as _ } from "jsr:@core/match";
     name: unknown,
     country: unknown,
     age: number,
-    favorite: unknown
+    favorite: unknown,
+    nickname: string
   } | undefined;.
   const result: Result = match(pattern, value);
   ```
