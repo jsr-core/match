@@ -1,9 +1,9 @@
 /**
  * core/match -- a pattern matching library for JavaScript and TypeScript
- * 
+ *
  * Copyright (c) 2023 TANIGUCHI Masaya. All rights reserved.
  * This code is licensed under the MIT License. See LICENSE file for more information.
- * 
+ *
  * SPDX-License-Identifier: MIT
  */
 
@@ -28,13 +28,13 @@ export class Placeholder {}
 
 /**
  * AnonymousPlaceholder class that holds a test function.
- * 
+ *
  * @template V - Type guard function.
  */
 export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Placeholder {
   /** The test function to validate the placeholder value. */
   test?: V;
-  
+
   /**
    * Represents a class constructor
    * @param [test] - The test parameter (optional).
@@ -47,7 +47,7 @@ export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Placeho
 
 /**
  * RegularPlaceholder class that holds a name and a test function.
- * 
+ *
  * @template T - Name of the placeholder.
  * @template V - Type guard function.
  */
@@ -135,7 +135,7 @@ _placeholder.greedy = greedy;
 export interface PlaceholderFactory {
   /**
    * Creates an anonymous placeholder with an optional test function.
-   * 
+   *
    * @param test - The test function to validate the placeholder value.
    * @returns An anonymous placeholder with the specified test function.
    */
@@ -143,7 +143,7 @@ export interface PlaceholderFactory {
 
   /**
    * Creates a regular placeholder with an optional name and test function.
-   * 
+   *
    * @param name - The name of the placeholder.
    * @param test - The test function to validate the placeholder value.
    * @returns A regular placeholder with the specified name and test function.
@@ -152,7 +152,7 @@ export interface PlaceholderFactory {
 
   /**
    * Creates a template string placeholder with multiple regular placeholders.
-   * 
+   *
    * @param strings - The template strings array.
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
@@ -161,7 +161,7 @@ export interface PlaceholderFactory {
 
   /**
    * Creates a template string placeholder with greedy matching.
-   * 
+   *
    * @param strings - The template strings array.
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
@@ -175,37 +175,37 @@ export interface PlaceholderFactory {
  */
 export const placeholder: PlaceholderFactory = _placeholder;
 
-/** 
+/**
  * Result type is a recursive type that represents the result of `match` function.
  * This type is a record of keys and values that are matched.
  * All the keys are declared as placeholders in `P` and the values are the types of the matched values.
- * 
+ *
  * @template P - The pattern to match against.
  */
 export type Result<P> =
-  P extends RegularPlaceholder<infer V, Is<infer U>> ? 
+  P extends RegularPlaceholder<infer V, Is<infer U>> ?
     { [v in V]: U } :
-    P extends TemplateStringPlaceholder<infer T> ? 
+    P extends TemplateStringPlaceholder<infer T> ?
       LoopTemplateStringArgs<T> :
-      P extends AnonymousPlaceholder ? 
+      P extends AnonymousPlaceholder ?
         never :
         P extends Array<infer A> ?
           LoopOtherArgs<U.ListOf<A>> :
-          P extends Record<Key, infer V> ? 
+          P extends Record<Key, infer V> ?
             LoopOtherArgs<U.ListOf<V>> :
             never;
 
 type LoopTemplateStringArgs<P, Acc extends Record<Key, unknown> = never> =
-  P extends [RegularPlaceholder<infer V, Is<infer U>>, ...infer Others] ? 
-    A.Equals<U, unknown> extends 1 ? 
+  P extends [RegularPlaceholder<infer V, Is<infer U>>, ...infer Others] ?
+    A.Equals<U, unknown> extends 1 ?
       LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<string>>>> :
       LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<U>>>> :
-    P extends [infer T, ...infer Others] ? 
+    P extends [infer T, ...infer Others] ?
       LoopTemplateStringArgs<Others, Acc | Result<T>> :
       U.Merge<Acc>;
 
 type LoopOtherArgs<P, Acc extends Record<Key, unknown> = never> =
-  P extends [infer V, ...infer Others] ? 
+  P extends [infer V, ...infer Others] ?
     LoopOtherArgs<Others, Acc | Result<V>> :
     U.Merge<Acc>;
 
