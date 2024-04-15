@@ -4,7 +4,9 @@
   "exports": "./mod.ts",
   "tasks": {
     "generateTest": "deno run --allow-write --allow-read generateTest.ts",
-    "test": "deno task generateTest && deno test"
+    "test": "deno task generateTest && deno test",
+    "update": "deno run --allow-env --allow-read --allow-write --allow-net --allow-run=git,deno https://deno.land/x/molt/cli.ts ./**/*.ts --unstable-lock",
+    "update:commit": "deno task -q update --commit --prefix 'build(deps):' --prefix-lock 'build(lock):'"
   },
   "publish": {
     "exclude": [
