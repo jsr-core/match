@@ -1,17 +1,19 @@
 /**
  * core/match -- a pattern matching library for JavaScript and TypeScript
  *
- * Copyright (c) 2023 TANIGUCHI Masaya. All rights reserved.
+ * Copyright (c) 2024 TANIGUCHI Masaya. All rights reserved.
  * This code is licensed under the MIT License. See LICENSE file for more information.
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { U, A } from "npm:ts-toolbelt@9.6.0";
+import type { U, A } from "npm:ts-toolbelt@9.6.0";
 
 type Key = string | number | symbol;
 type Pred = (v: unknown) => boolean;
 type Is<T> = (v: unknown) => v is T;
+type Entries<Obj, Keys = U.ListOf<keyof Obj>, Acc extends ([keyof Obj, Obj[keyof Obj]])[] = []> =
+  Keys extends [infer Key extends keyof Obj, ...infer Rest extends (keyof Obj)[]] ? Entries<Obj, Rest, [[Key, Obj[Key]], ...Acc]> : Acc;
 
 /**
  * Checks if the value is an instance of the specified class.
@@ -182,31 +184,60 @@ export const placeholder: PlaceholderFactory = _placeholder;
  *
  * @template P - The pattern to match against.
  */
-export type Result<P> =
+export type Match<P> =
   P extends RegularPlaceholder<infer V, Is<infer U>> ?
     { [v in V]: U } :
     P extends TemplateStringPlaceholder<infer T> ?
-      LoopTemplateStringArgs<T> :
+      MatchTemplateString<T> :
       P extends AnonymousPlaceholder ?
         never :
         P extends Array<infer A> ?
-          LoopOtherArgs<U.ListOf<A>> :
+          MatchArrayOrRecord<U.ListOf<A>> :
           P extends Record<Key, infer V> ?
-            LoopOtherArgs<U.ListOf<V>> :
+            MatchArrayOrRecord<U.ListOf<V>> :
             never;
 
-type LoopTemplateStringArgs<P, Acc extends Record<Key, unknown> = never> =
+type MatchTemplateString<P, Acc extends Record<Key, unknown> = never> =
   P extends [RegularPlaceholder<infer V, Is<infer U>>, ...infer Others] ?
     A.Equals<U, unknown> extends 1 ?
-      LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<string>>>> :
-      LoopTemplateStringArgs<Others, Acc | Result<RegularPlaceholder<V, Is<U>>>> :
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Is<string>>>> :
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Is<U>>>> :
     P extends [infer T, ...infer Others] ?
-      LoopTemplateStringArgs<Others, Acc | Result<T>> :
+      MatchTemplateString<Others, Acc | Match<T>> :
       U.Merge<Acc>;
 
-type LoopOtherArgs<P, Acc extends Record<Key, unknown> = never> =
+type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = never> =
   P extends [infer V, ...infer Others] ?
-    LoopOtherArgs<Others, Acc | Result<V>> :
+    MatchArrayOrRecord<Others, Acc | Match<V>> :
+    U.Merge<Acc>;
+
+/**
+ * Returns a type that represents the expected type of the pattern.
+ * Note that this type is experimental and no gurarantee is provided.
+ * @template P - The pattern to match against.
+ * @returns The expected type of the pattern.
+ **/
+export type Expected<P> =
+  P extends RegularPlaceholder<infer _V, Is<infer U>> ?
+    U :
+    P extends TemplateStringPlaceholder<infer _T> ?
+      string :
+      P extends AnonymousPlaceholder ?
+        unknown :
+        P extends Array<infer A> ?
+          ExpectedArray<U.ListOf<A>> :
+          P extends Record<Key, unknown> ?
+            ExpectedRecord<Entries<P>> :
+              P;
+
+type ExpectedArray<P, Acc extends unknown[] = []> =
+  P extends [infer V, ...infer Rest] ?
+    ExpectedArray<Rest, [...Acc, Expected<V>]> :
+    Acc;
+
+type ExpectedRecord<P, Acc extends Record<Key, unknown> = never> =
+  P extends [[infer K extends Key, infer V], ...infer Rest] ?
+    ExpectedRecord<Rest, { [k in K]: Expected<V> } | Acc> :
     U.Merge<Acc>;
 
 /**
@@ -215,16 +246,16 @@ type LoopOtherArgs<P, Acc extends Record<Key, unknown> = never> =
  * @param target - The target object to match.
  * @returns The result of the match or undefined if there is no match.
  */
-export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
+export function match<T>(pattern: T, target: unknown): Match<T> | undefined {
   if (is(pattern, AnonymousPlaceholder)) {
     if (!pattern.test || pattern.test(target)) {
-      return {} as Result<T>;
+      return {} as Match<T>;
     }
     return undefined;
   }
   if (is(pattern, RegularPlaceholder)) {
     if (!pattern.test || pattern.test(target)) {
-      return { [pattern.name]: target } as Result<T>;
+      return { [pattern.name]: target } as Match<T>;
     }
     return undefined;
   }
@@ -236,11 +267,11 @@ export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
     const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = new RegExp(`^${pattern.strings.map(esc).join(sep)}$`);
     const m = target.match(re);
-    let result: Result<T> | undefined;
+    let result: Match<T> | undefined;
     for (let i = 0; m && i < pattern.placeholders.length; i++) {
       const subResult = match(pattern.placeholders[i], m[i+1]);
       if (subResult) {
-        result = { ...(result ?? {} as Result<T>), ...subResult };
+        result = { ...(result ?? {} as Match<T>), ...subResult };
         continue;
       }
       return undefined;
@@ -248,12 +279,12 @@ export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
     return result;
   }
   if (Array.isArray(pattern)) {
-    let result: Result<T> | undefined;
+    let result: Match<T> | undefined;
     const ok = Array.isArray(target) && pattern.length <= target.length;
     for (let i = 0; ok && i < pattern.length; i++) {
       const subResult = match(pattern[i], target[i]);
       if (subResult) {
-        result = { ...(result ?? {} as Result<T>), ...subResult };
+        result = { ...(result ?? {} as Match<T>), ...subResult };
         continue;
       }
       return undefined;
@@ -261,7 +292,7 @@ export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
     return result;
   }
   if (is(pattern, Object) && target instanceof Object) {
-    const result = {} as Result<T>;
+    const result = {} as Match<T>;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
         const subResult = match(value, (target as any)[key]);
@@ -275,7 +306,7 @@ export function match<T>(pattern: T, target: unknown): Result<T> | undefined {
     return result;
   }
   if (pattern === target) {
-    return {} as Result<T>;
+    return {} as Match<T>;
   }
   return undefined;
 }

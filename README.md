@@ -55,14 +55,14 @@ import { match, placeholder as _ } from "jsr:@core/match";
 
 - `match` is a function for performing structured binding. If you execute a
   structured binding based on the above pattern, the value corresponding to the
-  following `Result` type is:
+  following `Match` type is:
   - an object whose key is the name declared as placeholder, and
   - the placeholder given the type guard will be of that type, and
   - if the structure does not match or the type guard fails, `undefined` is
     returned.
 
   ```ts
-  type Result = {
+  type Match = {
     [1]: unknown,
     [Symbol.other]: unknown
     name: unknown,
@@ -71,7 +71,7 @@ import { match, placeholder as _ } from "jsr:@core/match";
     favorite: unknown,
     nickname: string
   } | undefined;.
-  const result: Result = match(pattern, value);
+  const result: Match = match(pattern, value);
   ```
 
 ## How to declare type guards.
