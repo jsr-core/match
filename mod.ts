@@ -8,23 +8,12 @@
  */
 
 import type { U, A } from "npm:ts-toolbelt@9.6.0";
+import type { Predicate } from "jsr:@core/unknownutil@3.18.0";
+import { is } from "jsr:@core/unknownutil@3.18.0";
 
 type Key = string | number | symbol;
-type Pred = (v: unknown) => boolean;
-type Is<T> = (v: unknown) => v is T;
 type Entries<Obj, Keys = U.ListOf<keyof Obj>, Acc extends ([keyof Obj, Obj[keyof Obj]])[] = []> =
   Keys extends [infer Key extends keyof Obj, ...infer Rest extends (keyof Obj)[]] ? Entries<Obj, Rest, [[Key, Obj[Key]], ...Acc]> : Acc;
-
-/**
- * Checks if the value is an instance of the specified class.
- * @param v - The value to check.
- * @param t - The class to check against.
- * @returns True if the value is an instance of the specified class, false otherwise.
- * @template T - The type of the class.
- */
-function is<T>(v: unknown, t: new (...args: any[]) => T): v is T {
-  return v instanceof Object && Object.getPrototypeOf(v) === t.prototype;
-}
 
 export class Placeholder {}
 
@@ -33,7 +22,7 @@ export class Placeholder {}
  *
  * @template V - Type guard function.
  */
-export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Placeholder {
+export class AnonymousPlaceholder<V extends Predicate<unknown> = Predicate<unknown>>  extends Placeholder {
   /** The test function to validate the placeholder value. */
   test?: V;
 
@@ -53,7 +42,7 @@ export class AnonymousPlaceholder<V extends Pred = Is<unknown>>  extends Placeho
  * @template T - Name of the placeholder.
  * @template V - Type guard function.
  */
-export class RegularPlaceholder<T extends Key, V extends Pred = Is<unknown>> extends Placeholder {
+export class RegularPlaceholder<T extends Key, V extends Predicate<unknown> = Predicate<unknown>> extends Placeholder {
   /** The name of the placeholder. */
   name: T;
   /** The test function to validate the placeholder value. */
@@ -97,21 +86,20 @@ export class TemplateStringPlaceholder<T extends Placeholder[]>  extends Placeho
   }
 }
 
-function _placeholder<V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
-function _placeholder<T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+function _placeholder<V extends Predicate<unknown> = Predicate<unknown>>(test?: V): AnonymousPlaceholder<V>;
+function _placeholder<T extends Key, V extends Predicate<unknown> = Predicate<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 function _placeholder<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
-function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Pred = Is<unknown>>(
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Predicate<unknown> = Predicate<unknown>>(
   nameOrStringsOrTest?: T | TemplateStringsArray | V,
   ...testOrPlaceholders: [] | [V] | U
 ): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
   const isAbstractPlaceholders =
-    (v: unknown[]): v is U => v.every(p => p instanceof Placeholder);
-  const isKey =
-    (v: unknown): v is T => typeof v === 'string' || typeof v === 'number' || typeof v === 'symbol';
+    (v: unknown[]): v is U => is.ArrayOf(is.InstanceOf(Placeholder))(v);
+  const isKey = is.UnionOf([is.String, is.Number, is.Symbol]);
   const maybeTypeGuard =
-    (v: unknown): v is V | undefined => typeof v === 'function' || v === undefined;
+    (v: unknown): v is V | undefined => is.UnionOf([is.Function, is.Undefined])(v);
   const isTemplateStringsArray =
-    (v: unknown): v is TemplateStringsArray => Array.isArray(v) && v.every(s => typeof s === 'string');
+    (v: unknown): v is TemplateStringsArray => is.ArrayOf(is.String)(v);
   if (maybeTypeGuard(nameOrStringsOrTest)) {
     return new AnonymousPlaceholder(nameOrStringsOrTest);
   } else if (isKey(nameOrStringsOrTest)) {
@@ -141,7 +129,7 @@ export interface PlaceholderFactory {
    * @param test - The test function to validate the placeholder value.
    * @returns An anonymous placeholder with the specified test function.
    */
-  <V extends Pred = Is<unknown>>(test?: V): AnonymousPlaceholder<V>;
+  <V extends Predicate<unknown> = Predicate<unknown>>(test?: V): AnonymousPlaceholder<V>;
 
   /**
    * Creates a regular placeholder with an optional name and test function.
@@ -150,7 +138,7 @@ export interface PlaceholderFactory {
    * @param test - The test function to validate the placeholder value.
    * @returns A regular placeholder with the specified name and test function.
    */
-  <T extends Key, V extends Pred = Is<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+  <T extends Key, V extends Predicate<unknown> = Predicate<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 
   /**
    * Creates a template string placeholder with multiple regular placeholders.
@@ -185,7 +173,7 @@ export const placeholder: PlaceholderFactory = _placeholder;
  * @template P - The pattern to match against.
  */
 export type Match<P> =
-  P extends RegularPlaceholder<infer V, Is<infer U>> ?
+  P extends RegularPlaceholder<infer V, Predicate<infer U>> ?
     { [v in V]: U } :
     P extends TemplateStringPlaceholder<infer T> ?
       MatchTemplateString<T> :
@@ -198,10 +186,10 @@ export type Match<P> =
             never;
 
 type MatchTemplateString<P, Acc extends Record<Key, unknown> = never> =
-  P extends [RegularPlaceholder<infer V, Is<infer U>>, ...infer Others] ?
+  P extends [RegularPlaceholder<infer V, Predicate<infer U>>, ...infer Others] ?
     A.Equals<U, unknown> extends 1 ?
-      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Is<string>>>> :
-      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Is<U>>>> :
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Predicate<string>>>> :
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Predicate<U>>>> :
     P extends [infer T, ...infer Others] ?
       MatchTemplateString<Others, Acc | Match<T>> :
       U.Merge<Acc>;
@@ -218,7 +206,7 @@ type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = never> =
  * @returns The expected type of the pattern.
  **/
 export type Expected<P> =
-  P extends RegularPlaceholder<infer _V, Is<infer U>> ?
+  P extends RegularPlaceholder<infer _V, Predicate<infer U>> ?
     U :
     P extends TemplateStringPlaceholder<infer _T> ?
       string :
@@ -247,19 +235,19 @@ type ExpectedRecord<P, Acc extends Record<Key, unknown> = never> =
  * @returns The result of the match or undefined if there is no match.
  */
 export function match<T>(pattern: T, target: unknown): Match<T> | undefined {
-  if (is(pattern, AnonymousPlaceholder)) {
+  if (is.InstanceOf(AnonymousPlaceholder)(pattern)) {
     if (!pattern.test || pattern.test(target)) {
       return {} as Match<T>;
     }
     return undefined;
   }
-  if (is(pattern, RegularPlaceholder)) {
+  if (is.InstanceOf(RegularPlaceholder)(pattern)) {
     if (!pattern.test || pattern.test(target)) {
       return { [pattern.name]: target } as Match<T>;
     }
     return undefined;
   }
-  if (is(pattern, TemplateStringPlaceholder)) {
+  if (is.InstanceOf(TemplateStringPlaceholder<any[]>)(pattern)) {
     if (typeof target !== 'string') {
       return undefined;
     }
@@ -278,24 +266,27 @@ export function match<T>(pattern: T, target: unknown): Match<T> | undefined {
     }
     return result;
   }
-  if (Array.isArray(pattern)) {
-    let result: Match<T> | undefined;
-    const ok = Array.isArray(target) && pattern.length <= target.length;
-    for (let i = 0; ok && i < pattern.length; i++) {
+  if (is.ArrayOf(is.Any)(pattern)) {
+    if (!(is.Array(target) && pattern.length <= target.length)) {
+      return undefined;
+    }
+    const result = {} as Match<T>;
+    for (let i = 0; i < pattern.length; i++) {
       const subResult = match(pattern[i], target[i]);
       if (subResult) {
-        result = { ...(result ?? {} as Match<T>), ...subResult };
+        Object.assign(result, subResult);
         continue;
       }
       return undefined;
     }
     return result;
   }
-  if (is(pattern, Object) && target instanceof Object) {
+  // pattern should be a direct instance of Object
+  if (pattern instanceof Object && Object.getPrototypeOf(pattern) === Object.prototype && is.Record(target)) {
     const result = {} as Match<T>;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
-        const subResult = match(value, (target as any)[key]);
+        const subResult = match(value, target[key]);
         if (subResult) {
           Object.assign(result, subResult);
           continue;
