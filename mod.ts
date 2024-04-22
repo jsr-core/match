@@ -178,14 +178,14 @@ export type Match<P> =
     P extends TemplateStringPlaceholder<infer T> ?
       MatchTemplateString<T> :
       P extends AnonymousPlaceholder ?
-        never :
+        Record<Key, unknown> :
         P extends Array<infer A> ?
           MatchArrayOrRecord<U.ListOf<A>> :
           P extends Record<Key, infer V> ?
             MatchArrayOrRecord<U.ListOf<V>> :
-            never;
+            Record<Key, unknown>;
 
-type MatchTemplateString<P, Acc extends Record<Key, unknown> = never> =
+type MatchTemplateString<P, Acc extends Record<Key, unknown> = Record<Key, unknown>> =
   P extends [RegularPlaceholder<infer V, Predicate<infer U>>, ...infer Others] ?
     A.Equals<U, unknown> extends 1 ?
       MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Predicate<string>>>> :
@@ -194,7 +194,7 @@ type MatchTemplateString<P, Acc extends Record<Key, unknown> = never> =
       MatchTemplateString<Others, Acc | Match<T>> :
       U.Merge<Acc>;
 
-type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = never> =
+type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = Record<Key, unknown>> =
   P extends [infer V, ...infer Others] ?
     MatchArrayOrRecord<Others, Acc | Match<V>> :
     U.Merge<Acc>;
