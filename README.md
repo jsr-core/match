@@ -1,7 +1,6 @@
 # ![@core/match](https://typography.deno.dev/render?text=%40core%2Fmatch&family=Poiret+One&weight=400&size=50&color=%23ff8040)
 
-\[ [GitHub tani/ts-match](https://github.com/tani/ts-match) \] \[
-[JSR @core/match](https://jsr.io/@core/match) \]
+\[ [GitHub tani/ts-match](https://github.com/tani/ts-match) \] \[ [JSR @core/match](https://jsr.io/@core/match) \]
 
 A pattern matching library for JavaScript/ TypeScript
 
@@ -22,9 +21,9 @@ impotent for data whose structure is not determined at compile time, such as
 JSON data. The latter required writing two structured binding patterns and two
 validation patterns.
 
-**This library can perform structured binding and validation simultaneously,
-while preserving compile-time type information.** It is a library that enables
-true pattern matching and brings EcmaScript's structured binding to perfection.
+**This library can perform structured binding and validation simultaneously, while
+preserving compile-time type information.** It is a library that enables true
+pattern matching and brings EcmaScript's structured binding to perfection.
 
 Again, this is not just for TypeScript, it is also useful in JavaScript.
 
@@ -50,7 +49,7 @@ import { match, placeholder as _ } from "jsr:@core/match";
     age: _("age", isNumber), // you can specify the type of placeholder with the type guard,
     favorites: ["baseball", _("favorite")], // you can put the placeholder in an array
     others: [_(1), _(Symbol.other)], // you can declare the placeholder with number or symbol
-    message: _`Hello, ${_("nickname")}`, // you can put the placeholder in the template string.
+    message: _`Hello, ${_("nickname")}` // you can put the placeholder in the template string.
   };
   ```
 
@@ -695,8 +694,8 @@ The match function also supports template string placeholders with greedy mode.
 The following pattern has two template string placeholders, `name` and `age`.
 Note that the resulting object has `name` and `age` keys, and the values of the
 object are `john` and `123` respectively. The type of the `name` value is
-`string`, and the type of the `age` value is `string` in TypeScript because the
-placeholders have no type guards.
+`string`, and the type of the `age` value is `string` in TypeScript because
+the placeholders have no type guards.
 
 ```ts
 Deno.test("match object with template string placeholder with multiple placeholders (greedy, not equal)", () => {

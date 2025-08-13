@@ -7,42 +7,13 @@
  * SPDX-License-Identifier: MIT
  */
 
-import type { A, U } from "npm:ts-toolbelt@9.6.0";
-
-type Predicate<T> = (value: unknown) => value is T;
-
-const is = {
-  ArrayOf:
-    <T>(predicate: (value: unknown) => value is T) =>
-    (value: unknown): value is T[] =>
-      Array.isArray(value) && value.every(predicate),
-  InstanceOf:
-    <T>(constructor: new (...args: any[]) => T) =>
-    (value: unknown): value is T => value instanceof constructor,
-  String: (value: unknown): value is string => typeof value === "string",
-  Number: (value: unknown): value is number => typeof value === "number",
-  Symbol: (value: unknown): value is symbol => typeof value === "symbol",
-  Function: (value: unknown): value is Function => typeof value === "function",
-  Undefined: (value: unknown): value is undefined => value === undefined,
-  UnionOf:
-    <T extends readonly ((value: unknown) => value is any)[]>(predicates: T) =>
-    (value: unknown): value is any =>
-      predicates.some((predicate) => predicate(value)),
-  Array: (value: unknown): value is unknown[] => Array.isArray(value),
-  Record: (value: unknown): value is Record<string, unknown> =>
-    typeof value === "object" && value !== null && !Array.isArray(value),
-  Any: (value: unknown): value is any => true,
-};
+import type { U, A } from "npm:ts-toolbelt@9.6.0";
+import type { Predicate } from "jsr:@core/unknownutil@3.18.0";
+import { is } from "jsr:@core/unknownutil@3.18.0";
 
 type Key = string | number | symbol;
-type Entries<
-  Obj,
-  Keys = U.ListOf<keyof Obj>,
-  Acc extends ([keyof Obj, Obj[keyof Obj]])[] = [],
-> = Keys extends
-  [infer Key extends keyof Obj, ...infer Rest extends (keyof Obj)[]]
-  ? Entries<Obj, Rest, [[Key, Obj[Key]], ...Acc]>
-  : Acc;
+type Entries<Obj, Keys = U.ListOf<keyof Obj>, Acc extends ([keyof Obj, Obj[keyof Obj]])[] = []> =
+  Keys extends [infer Key extends keyof Obj, ...infer Rest extends (keyof Obj)[]] ? Entries<Obj, Rest, [[Key, Obj[Key]], ...Acc]> : Acc;
 
 export class Placeholder {}
 
@@ -51,9 +22,7 @@ export class Placeholder {}
  *
  * @template V - Type guard function.
  */
-export class AnonymousPlaceholder<
-  V extends Predicate<unknown> = Predicate<unknown>,
-> extends Placeholder {
+export class AnonymousPlaceholder<V extends Predicate<unknown> = Predicate<unknown>>  extends Placeholder {
   /** The test function to validate the placeholder value. */
   test?: V;
 
@@ -73,10 +42,7 @@ export class AnonymousPlaceholder<
  * @template T - Name of the placeholder.
  * @template V - Type guard function.
  */
-export class RegularPlaceholder<
-  T extends Key,
-  V extends Predicate<unknown> = Predicate<unknown>,
-> extends Placeholder {
+export class RegularPlaceholder<T extends Key, V extends Predicate<unknown> = Predicate<unknown>> extends Placeholder {
   /** The name of the placeholder. */
   name: T;
   /** The test function to validate the placeholder value. */
@@ -98,8 +64,7 @@ export class RegularPlaceholder<
  * Represents a template string placeholder with optional regular placeholders.
  * @template T - Tuple of regular placeholders.
  */
-export class TemplateStringPlaceholder<T extends Placeholder[]>
-  extends Placeholder {
+export class TemplateStringPlaceholder<T extends Placeholder[]>  extends Placeholder {
   /** The template strings array. */
   strings: TemplateStringsArray;
   /** The regular placeholders. */
@@ -113,11 +78,7 @@ export class TemplateStringPlaceholder<T extends Placeholder[]>
    * @param strings - The template strings array.
    * @param placeholders - The regular placeholders.
    */
-  constructor(
-    greedy: boolean,
-    strings: TemplateStringsArray,
-    ...placeholders: T
-  ) {
+  constructor(greedy: boolean, strings: TemplateStringsArray, ...placeholders: T) {
     super();
     this.greedy = greedy;
     this.strings = strings;
@@ -125,60 +86,35 @@ export class TemplateStringPlaceholder<T extends Placeholder[]>
   }
 }
 
-function _placeholder<V extends Predicate<unknown> = Predicate<unknown>>(
-  test?: V,
-): AnonymousPlaceholder<V>;
-function _placeholder<
-  T extends Key,
-  V extends Predicate<unknown> = Predicate<unknown>,
->(name: T, test?: V): RegularPlaceholder<T, V>;
-function _placeholder<T extends Placeholder[]>(
-  strings: TemplateStringsArray,
-  ...placeholders: T
-): TemplateStringPlaceholder<T>;
-function _placeholder<
-  T extends Key,
-  U extends RegularPlaceholder<Key>[],
-  V extends Predicate<unknown> = Predicate<unknown>,
->(
+function _placeholder<V extends Predicate<unknown> = Predicate<unknown>>(test?: V): AnonymousPlaceholder<V>;
+function _placeholder<T extends Key, V extends Predicate<unknown> = Predicate<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
+function _placeholder<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
+function _placeholder<T extends Key, U extends RegularPlaceholder<Key>[], V extends Predicate<unknown> = Predicate<unknown>>(
   nameOrStringsOrTest?: T | TemplateStringsArray | V,
   ...testOrPlaceholders: [] | [V] | U
-):
-  | RegularPlaceholder<T, V>
-  | TemplateStringPlaceholder<U>
-  | AnonymousPlaceholder<V> {
-  const isAbstractPlaceholders = (v: unknown[]): v is U =>
-    is.ArrayOf(is.InstanceOf(Placeholder))(v);
+): RegularPlaceholder<T, V> | TemplateStringPlaceholder<U> | AnonymousPlaceholder<V> {
+  const isAbstractPlaceholders =
+    (v: unknown[]): v is U => is.ArrayOf(is.InstanceOf(Placeholder))(v);
   const isKey = is.UnionOf([is.String, is.Number, is.Symbol]);
-  const maybeTypeGuard = (v: unknown): v is V | undefined =>
-    is.UnionOf([is.Function, is.Undefined])(v);
-  const isTemplateStringsArray = (v: unknown): v is TemplateStringsArray =>
-    is.ArrayOf(is.String)(v);
+  const maybeTypeGuard =
+    (v: unknown): v is V | undefined => is.UnionOf([is.Function, is.Undefined])(v);
+  const isTemplateStringsArray =
+    (v: unknown): v is TemplateStringsArray => is.ArrayOf(is.String)(v);
   if (maybeTypeGuard(nameOrStringsOrTest)) {
     return new AnonymousPlaceholder(nameOrStringsOrTest);
   } else if (isKey(nameOrStringsOrTest)) {
     if (maybeTypeGuard(testOrPlaceholders[0])) {
-      return new RegularPlaceholder(
-        nameOrStringsOrTest as T,
-        testOrPlaceholders[0],
-      );
+      return new RegularPlaceholder(nameOrStringsOrTest, testOrPlaceholders[0]);
     }
   } else if (isTemplateStringsArray(nameOrStringsOrTest)) {
     if (isAbstractPlaceholders(testOrPlaceholders)) {
-      return new TemplateStringPlaceholder(
-        false,
-        nameOrStringsOrTest,
-        ...testOrPlaceholders,
-      );
+      return new TemplateStringPlaceholder(false, nameOrStringsOrTest, ...testOrPlaceholders);
     }
   }
-  throw new Error("Invalid arguments");
+  throw new Error('Invalid arguments');
 }
 
-function greedy<T extends Placeholder[]>(
-  strings: TemplateStringsArray,
-  ...placeholders: T
-): TemplateStringPlaceholder<T> {
+function greedy<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T> {
   return new TemplateStringPlaceholder(true, strings, ...placeholders);
 }
 _placeholder.greedy = greedy;
@@ -193,9 +129,7 @@ export interface PlaceholderFactory {
    * @param test - The test function to validate the placeholder value.
    * @returns An anonymous placeholder with the specified test function.
    */
-  <V extends Predicate<unknown> = Predicate<unknown>>(
-    test?: V,
-  ): AnonymousPlaceholder<V>;
+  <V extends Predicate<unknown> = Predicate<unknown>>(test?: V): AnonymousPlaceholder<V>;
 
   /**
    * Creates a regular placeholder with an optional name and test function.
@@ -204,10 +138,7 @@ export interface PlaceholderFactory {
    * @param test - The test function to validate the placeholder value.
    * @returns A regular placeholder with the specified name and test function.
    */
-  <T extends Key, V extends Predicate<unknown> = Predicate<unknown>>(
-    name: T,
-    test?: V,
-  ): RegularPlaceholder<T, V>;
+  <T extends Key, V extends Predicate<unknown> = Predicate<unknown>>(name: T, test?: V): RegularPlaceholder<T, V>;
 
   /**
    * Creates a template string placeholder with multiple regular placeholders.
@@ -216,10 +147,7 @@ export interface PlaceholderFactory {
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
    */
-  <T extends Placeholder[]>(
-    strings: TemplateStringsArray,
-    ...placeholders: T
-  ): TemplateStringPlaceholder<T>;
+  <T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 
   /**
    * Creates a template string placeholder with greedy matching.
@@ -228,11 +156,9 @@ export interface PlaceholderFactory {
    * @param placeholders - The regular placeholders to be used in the template string.
    * @returns A template string placeholder with the specified regular placeholders.
    */
-  greedy<T extends Placeholder[]>(
-    strings: TemplateStringsArray,
-    ...placeholders: T
-  ): TemplateStringPlaceholder<T>;
+  greedy<T extends Placeholder[]>(strings: TemplateStringsArray, ...placeholders: T): TemplateStringPlaceholder<T>;
 }
+
 
 /**
  * A placeholder constant.
@@ -246,54 +172,61 @@ export const placeholder: PlaceholderFactory = _placeholder;
  *
  * @template P - The pattern to match against.
  */
-export type Match<P> = P extends RegularPlaceholder<infer V, Predicate<infer U>>
-  ? { [v in V]: U }
-  : P extends TemplateStringPlaceholder<infer T> ? MatchTemplateString<T>
-  : P extends AnonymousPlaceholder ? never
-  : P extends Array<infer A> ? MatchArrayOrRecord<U.ListOf<A>>
-  : P extends Record<Key, infer V> ? MatchArrayOrRecord<U.ListOf<V>>
-  : never;
+export type Match<P> =
+  P extends RegularPlaceholder<infer V, Predicate<infer U>> ?
+    { [v in V]: U } :
+    P extends TemplateStringPlaceholder<infer T> ?
+      MatchTemplateString<T> :
+      P extends AnonymousPlaceholder ?
+        never :
+        P extends Array<infer A> ?
+          MatchArrayOrRecord<U.ListOf<A>> :
+          P extends Record<Key, infer V> ?
+            MatchArrayOrRecord<U.ListOf<V>> :
+            never;
 
 type MatchTemplateString<P, Acc extends Record<Key, unknown> = never> =
-  P extends [RegularPlaceholder<infer V, Predicate<infer U>>, ...infer Others]
-    ? A.Equals<U, unknown> extends 1 ? MatchTemplateString<
-        Others,
-        Acc | Match<RegularPlaceholder<V, Predicate<string>>>
-      >
-    : MatchTemplateString<
-      Others,
-      Acc | Match<RegularPlaceholder<V, Predicate<U>>>
-    >
-    : P extends [infer T, ...infer Others]
-      ? MatchTemplateString<Others, Acc | Match<T>>
-    : U.Merge<Acc>;
+  P extends [RegularPlaceholder<infer V, Predicate<infer U>>, ...infer Others] ?
+    A.Equals<U, unknown> extends 1 ?
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Predicate<string>>>> :
+      MatchTemplateString<Others, Acc | Match<RegularPlaceholder<V, Predicate<U>>>> :
+    P extends [infer T, ...infer Others] ?
+      MatchTemplateString<Others, Acc | Match<T>> :
+      U.Merge<Acc>;
 
-type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = never> = P extends
-  [infer V, ...infer Others] ? MatchArrayOrRecord<Others, Acc | Match<V>>
-  : U.Merge<Acc>;
+type MatchArrayOrRecord<P, Acc extends Record<Key, unknown> = never> =
+  P extends [infer V, ...infer Others] ?
+    MatchArrayOrRecord<Others, Acc | Match<V>> :
+    U.Merge<Acc>;
 
 /**
  * Returns a type that represents the expected type of the pattern.
  * Note that this type is experimental and no gurarantee is provided.
  * @template P - The pattern to match against.
  * @returns The expected type of the pattern.
- */
-export type Expected<P> = P extends
-  RegularPlaceholder<infer _V, Predicate<infer U>> ? U
-  : P extends TemplateStringPlaceholder<infer _T> ? string
-  : P extends AnonymousPlaceholder ? unknown
-  : P extends Array<infer A> ? ExpectedArray<U.ListOf<A>>
-  : P extends Record<Key, unknown> ? ExpectedRecord<Entries<P>>
-  : P;
+ **/
+export type Expected<P> =
+  P extends RegularPlaceholder<infer _V, Predicate<infer U>> ?
+    U :
+    P extends TemplateStringPlaceholder<infer _T> ?
+      string :
+      P extends AnonymousPlaceholder ?
+        unknown :
+        P extends Array<infer A> ?
+          ExpectedArray<U.ListOf<A>> :
+          P extends Record<Key, unknown> ?
+            ExpectedRecord<Entries<P>> :
+              P;
 
-type ExpectedArray<P, Acc extends unknown[] = []> = P extends
-  [infer V, ...infer Rest] ? ExpectedArray<Rest, [...Acc, Expected<V>]>
-  : Acc;
+type ExpectedArray<P, Acc extends unknown[] = []> =
+  P extends [infer V, ...infer Rest] ?
+    ExpectedArray<Rest, [...Acc, Expected<V>]> :
+    Acc;
 
-type ExpectedRecord<P, Acc extends Record<Key, unknown> = never> = P extends
-  [[infer K extends Key, infer V], ...infer Rest]
-  ? ExpectedRecord<Rest, { [k in K]: Expected<V> } | Acc>
-  : U.Merge<Acc>;
+type ExpectedRecord<P, Acc extends Record<Key, unknown> = never> =
+  P extends [[infer K extends Key, infer V], ...infer Rest] ?
+    ExpectedRecord<Rest, { [k in K]: Expected<V> } | Acc> :
+    U.Merge<Acc>;
 
 /**
  * Matches a pattern against a target object.
@@ -315,16 +248,16 @@ export function match<T>(pattern: T, target: unknown): Match<T> | undefined {
     return undefined;
   }
   if (is.InstanceOf(TemplateStringPlaceholder<any[]>)(pattern)) {
-    if (typeof target !== "string") {
+    if (typeof target !== 'string') {
       return undefined;
     }
-    const sep = pattern.greedy ? "(.*)" : "(.*?)";
-    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const sep = pattern.greedy ? '(.*)' : '(.*?)';
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = new RegExp(`^${pattern.strings.map(esc).join(sep)}$`);
     const m = target.match(re);
     let result: Match<T> | undefined;
     for (let i = 0; m && i < pattern.placeholders.length; i++) {
-      const subResult = match(pattern.placeholders[i], m[i + 1]);
+      const subResult = match(pattern.placeholders[i], m[i+1]);
       if (subResult) {
         result = { ...(result ?? {} as Match<T>), ...subResult };
         continue;
@@ -349,10 +282,7 @@ export function match<T>(pattern: T, target: unknown): Match<T> | undefined {
     return result;
   }
   // pattern should be a direct instance of Object
-  if (
-    pattern instanceof Object &&
-    Object.getPrototypeOf(pattern) === Object.prototype && is.Record(target)
-  ) {
+  if (pattern instanceof Object && Object.getPrototypeOf(pattern) === Object.prototype && is.Record(target)) {
     const result = {} as Match<T>;
     for (const [key, value] of Object.entries(pattern)) {
       if (key in target) {
